@@ -1,0 +1,101 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="toolbar-kinet">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/retos" text=""></ion-back-button>
+    </ion-buttons>
+    <ion-title>Detalle del reto</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="detalle">
+    @if (error()) {
+      <div class="estado-error">
+        <p class="alert-error" role="alert">{{ error() }}</p>
+        <a routerLink="/tabs/retos" class="btn-primary">Volver a retos</a>
+      </div>
+    } @else if (reto(); as r) {
+      <div class="portada" [attr.data-categoria]="r.categoria ?? 'GENERAL'">
+        <ion-icon [name]="icono(r.categoria)" class="portada__icono" aria-hidden="true"></ion-icon>
+        <span class="portada__estado">
+          <span class="punto"></span>{{ r.completado ? 'Completado' : 'En curso' }}
+        </span>
+      </div>
+
+      <span class="chip-categoria">
+        <ion-icon [name]="icono(r.categoria)" aria-hidden="true"></ion-icon>
+        {{ categoria(r) }} • {{ r.tipo === 'GRUPAL' ? 'Grupal' : 'Individual' }}
+      </span>
+      <h1>{{ r.titulo }}</h1>
+      <p class="descripcion">{{ r.descripcion }}</p>
+
+      <div class="recompensa">
+        <span class="recompensa__icono"><ion-icon name="flash" aria-hidden="true"></ion-icon></span>
+        <div class="recompensa__texto">
+          <span class="etiqueta">Recompensa</span>
+          <span>{{ r.completado ? 'Obtenida al completarlo' : 'Al completar el reto' }}</span>
+        </div>
+        <span class="recompensa__xp">+{{ numero(r.recompensaXp) }} XP</span>
+      </div>
+
+      <div class="metricas">
+        <div class="metrica">
+          <div class="metrica__cabecera">
+            <span class="etiqueta">Progreso</span>
+            <ion-icon name="trending-up" aria-hidden="true"></ion-icon>
+          </div>
+          <p class="metrica__valor">{{ r.progreso }}<span>/ {{ r.meta }}</span></p>
+          <app-barra-progreso [valor]="r.progreso" [meta]="r.meta" [completado]="r.completado" />
+        </div>
+
+        <div class="metrica">
+          <div class="metrica__cabecera">
+            <span class="etiqueta">Límite</span>
+            <ion-icon name="timer-outline" aria-hidden="true"></ion-icon>
+          </div>
+          @if (restante(); as t) {
+            <p class="metrica__valor">{{ t.valor }}<span>{{ t.unidad }}</span></p>
+          } @else {
+            <p class="metrica__valor metrica__valor--fin">Finalizado</p>
+          }
+          <p class="metrica__nota">Termina el {{ limite(r.fechaFin) }}</p>
+        </div>
+      </div>
+
+      <section class="aportes">
+        <div class="aportes__cabecera">
+          <span class="etiqueta">Aportes recientes</span>
+          <span class="aportes__cuenta">
+            {{ r.historial.length }} {{ r.historial.length === 1 ? 'registrado' : 'registrados' }}
+          </span>
+        </div>
+        @for (a of r.historial.slice(0, 5); track $index) {
+          <div class="aporte">
+            <span class="aporte__fecha">{{ fecha(a.fecha) }}</span>
+            <span class="aporte__desc">{{ a.descripcion }}</span>
+            <span class="aporte__cantidad">+{{ a.cantidad }} {{ unidad(r.unidad) }}</span>
+          </div>
+        } @empty {
+          <p class="aportes__vacio">Aún no hay aportes. Tu primera sesión aparecerá aquí.</p>
+        }
+      </section>
+
+      @if (r.completado) {
+        <div class="completo">
+          <ion-icon name="trophy" aria-hidden="true"></ion-icon>
+          ¡Reto completado! Ganaste {{ numero(r.recompensaXp) }} XP.
+        </div>
+      } @else {
+        <a class="btn-cta" routerLink="/tabs/inicio/registrar" [queryParams]="parametros(r)">
+          <ion-icon name="add-circle-outline" aria-hidden="true"></ion-icon>
+          Registrar sesión
+        </a>
+        <p class="pista">{{ pista(r) }}</p>
+      }
+    } @else {
+      <ion-skeleton-text [animated]="true" class="esqueleto esqueleto--portada"></ion-skeleton-text>
+      <ion-skeleton-text [animated]="true" class="esqueleto esqueleto--titulo"></ion-skeleton-text>
+      <ion-skeleton-text [animated]="true" class="esqueleto esqueleto--bloque"></ion-skeleton-text>
+    }
+  </div>
+</ion-content>

@@ -1,0 +1,90 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="toolbar-kinet">
+    <app-encabezado />
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="cargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="inicio">
+    <section class="saludo">
+      <div>
+        <p class="saludo__estado">
+          <span class="punto"></span>
+          {{ resumen()?.entrenoHoy ? 'Racha asegurada hoy' : 'Entrena hoy para sumar a tu racha' }}
+        </p>
+        <h1>Hola, {{ saludo() }}</h1>
+      </div>
+      @if (resumen(); as r) {
+        <a routerLink="/tabs/retos" class="chip-retos">
+          <ion-icon name="flash" aria-hidden="true"></ion-icon>
+          {{ r.retosActivos }} {{ r.retosActivos === 1 ? 'reto activo' : 'retos activos' }}
+        </a>
+      }
+    </section>
+
+    <div class="cta-wrap">
+      <a routerLink="/tabs/inicio/registrar" class="cta">
+        <span class="cta__izq">
+          <span class="cta__icono"><ion-icon name="play" aria-hidden="true"></ion-icon></span>
+          <span>
+            <span class="cta__titulo">Comenzar entrenamiento</span>
+            <span class="cta__sub">Registra tu sesión de hoy</span>
+          </span>
+        </span>
+        <ion-icon name="arrow-forward" class="cta__flecha" aria-hidden="true"></ion-icon>
+      </a>
+    </div>
+
+    <div class="metricas__encabezado">
+      <span>Métricas principales</span>
+      <span class="metricas__estado">{{ cargando() ? 'Actualizando…' : 'Sincronizado' }}</span>
+    </div>
+
+    @if (error()) {
+      <div class="metricas__error">
+        <p class="alert-error" role="alert">{{ error() }}</p>
+        <button type="button" class="btn-primary" (click)="cargar()">Reintentar</button>
+      </div>
+    }
+
+    <div class="metricas">
+      <article class="metrica metrica--xp">
+        <div>
+          <p class="metrica__etiqueta">XP acumulada</p>
+          @if (resumen(); as r) {
+            <p class="metrica__valor">{{ numero(r.xpTotal) }}<span>pts</span></p>
+          } @else {
+            <ion-skeleton-text [animated]="true" class="metrica__esqueleto"></ion-skeleton-text>
+          }
+        </div>
+        <span class="metrica__icono"><ion-icon name="ribbon-outline" aria-hidden="true"></ion-icon></span>
+      </article>
+
+      <article class="metrica metrica--nivel">
+        <div>
+          <p class="metrica__etiqueta">Nivel</p>
+          <p class="metrica__valor metrica__valor--texto">{{ nivel() }}<span>inicial</span></p>
+        </div>
+        <span class="metrica__icono"><ion-icon name="shield-checkmark-outline" aria-hidden="true"></ion-icon></span>
+      </article>
+
+      <article class="metrica metrica--racha">
+        <div>
+          <p class="metrica__etiqueta">Racha actual</p>
+          @if (resumen(); as r) {
+            <p class="metrica__valor">
+              {{ r.rachaActual }} {{ r.rachaActual === 1 ? 'día' : 'días' }}<span>récord {{ r.rachaRecord }}</span>
+            </p>
+          } @else {
+            <ion-skeleton-text [animated]="true" class="metrica__esqueleto"></ion-skeleton-text>
+          }
+        </div>
+        <span class="metrica__icono"><ion-icon name="flame-outline" aria-hidden="true"></ion-icon></span>
+      </article>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,265 @@
+.inicio {
+  max-width: 448px;
+  margin: 0 auto;
+  padding: 16px 20px 32px;
+}
+
+.punto {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: var(--kinet-radius-pill);
+  background: var(--kinet-accent);
+}
+
+// ----- Saludo -----
+.saludo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 40px;
+
+  h1 {
+    margin: 4px 0 0;
+    font-family: var(--kinet-font-display);
+    font-weight: 600;
+    font-size: 26px;
+    line-height: 32px;
+    letter-spacing: -0.65px;
+    color: var(--kinet-text);
+  }
+}
+
+.saludo__estado {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--kinet-text-secondary);
+}
+
+.chip-retos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: var(--kinet-radius-pill);
+  background: var(--kinet-surface-high);
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 14px;
+  color: var(--kinet-text);
+  text-decoration: none;
+
+  ion-icon {
+    font-size: 12px;
+    color: var(--kinet-accent);
+  }
+}
+
+// ----- Botón principal -----
+.cta-wrap {
+  position: relative;
+  isolation: isolate;
+  margin-bottom: 40px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    z-index: -1;
+    border-radius: 16px;
+    background: linear-gradient(90deg, #0066ff, #00d2ff);
+    filter: blur(12px);
+    opacity: 0.3;
+  }
+}
+
+.cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 76px;
+  padding: 0 24px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, #0066ff, #0080ff 50%, #00d2ff);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  color: #ffffff;
+  text-decoration: none;
+  transition: transform 0.15s;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.cta__izq {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cta__icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--kinet-radius-pill);
+  background: rgba(13, 14, 17, 0.2);
+  font-size: 16px;
+}
+
+.cta__titulo {
+  display: block;
+  font-family: var(--kinet-font-display);
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 18px;
+  letter-spacing: -0.45px;
+}
+
+.cta__sub {
+  display: block;
+  margin-top: 4px;
+  font-weight: 500;
+  font-size: 11px;
+  line-height: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.cta__flecha {
+  font-size: 20px;
+}
+
+// ----- Métricas -----
+.metricas__encabezado {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 0.55px;
+  text-transform: uppercase;
+  color: var(--kinet-text-muted);
+}
+
+.metricas__estado {
+  letter-spacing: 1.1px;
+  color: var(--kinet-accent);
+}
+
+.metricas__error {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.metricas {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.metrica {
+  --color-metrica: var(--kinet-accent);
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  overflow: hidden;
+  border-radius: var(--kinet-radius-card);
+  background: var(--kinet-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+
+  // Barra de color a la derecha
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--color-barra, var(--color-metrica));
+  }
+
+  &--xp {
+    --color-metrica: var(--kinet-primary-soft);
+    --color-barra: var(--kinet-primary);
+  }
+
+  &--nivel {
+    --color-metrica: var(--kinet-accent);
+  }
+
+  &--racha {
+    --color-metrica: var(--kinet-accent-soft);
+  }
+}
+
+.metrica__etiqueta {
+  margin: 0 0 6px;
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--color-metrica);
+}
+
+.metrica__valor {
+  margin: 0;
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 32px;
+  line-height: 36px;
+  letter-spacing: -0.8px;
+  color: var(--kinet-text);
+
+  span {
+    margin-left: 6px;
+    font-size: 11px;
+    letter-spacing: 0.88px;
+    text-transform: uppercase;
+    color: var(--color-metrica);
+  }
+
+  &--texto {
+    font-size: 26px;
+    text-transform: uppercase;
+  }
+}
+
+.metrica__esqueleto {
+  width: 120px;
+  height: 36px;
+  margin: 0;
+  border-radius: 8px;
+}
+
+.metrica__icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border-radius: var(--kinet-radius-card);
+  background: var(--kinet-surface-high);
+  font-size: 22px;
+  color: var(--color-metrica);
+}

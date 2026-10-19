@@ -1,0 +1,62 @@
+<ion-content [fullscreen]="true">
+  <div class="auth">
+    <header class="auth__brand">
+      <ion-icon name="triangle" class="auth__logo" aria-hidden="true"></ion-icon>
+      <span class="auth__wordmark">KINET</span>
+    </header>
+
+    <div class="auth__intro">
+      <p class="auth__eyebrow"><span class="auth__dot"></span>Acceso de atleta</p>
+      <h1>Inicia sesión</h1>
+      <p class="auth__lead">Retoma tus retos donde los dejaste.</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="auth__form">
+      <div class="field">
+        <label class="field__label" for="correo">Correo</label>
+        <div class="field__box" [class.field__box--error]="invalido('correo')">
+          <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
+          <input id="correo" type="email" formControlName="correo"
+                 autocomplete="email" inputmode="email" placeholder="tu@correo.com" />
+        </div>
+        @if (invalido('correo')) {
+          <span class="field__error">
+            {{ form.controls.correo.hasError('required') ? 'Escribe tu correo.' : 'El correo no tiene un formato válido.' }}
+          </span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="contrasena">Contraseña</label>
+        <div class="field__box" [class.field__box--error]="invalido('contrasena')">
+          <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+          <input id="contrasena" [type]="verContrasena() ? 'text' : 'password'"
+                 formControlName="contrasena" autocomplete="current-password" placeholder="••••••••" />
+          <button type="button" class="field__toggle" (click)="verContrasena.set(!verContrasena())"
+                  [attr.aria-label]="verContrasena() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+            <ion-icon [name]="verContrasena() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          </button>
+        </div>
+        @if (invalido('contrasena')) {
+          <span class="field__error">Escribe tu contraseña.</span>
+        }
+      </div>
+
+      @if (error()) {
+        <p class="alert-error" role="alert">{{ error() }}</p>
+      }
+
+      <button type="submit" class="btn-primary" [disabled]="cargando()">
+        @if (cargando()) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          Iniciar sesión
+        }
+      </button>
+    </form>
+
+    <p class="auth__switch">
+      ¿Aún no tienes cuenta? <a routerLink="/registro">Crea tu cuenta</a>
+    </p>
+  </div>
+</ion-content>

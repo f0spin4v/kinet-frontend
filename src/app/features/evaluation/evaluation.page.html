@@ -1,0 +1,108 @@
+<ion-content [fullscreen]="true">
+  <div class="eval">
+    <header class="eval__header">
+      <div class="eval__brand">
+        <ion-icon name="triangle" class="eval__logo" aria-hidden="true"></ion-icon>
+        <span class="eval__wordmark">KINET</span>
+      </div>
+      <button type="button" class="eval__salir" (click)="salir()">Salir</button>
+    </header>
+
+    @switch (estado()) {
+      @case ('cargando') {
+        <div class="eval__centro">
+          <ion-spinner name="crescent"></ion-spinner>
+          <p>Preparando tu evaluación…</p>
+        </div>
+      }
+
+      @case ('error') {
+        <div class="eval__centro">
+          <p class="alert-error" role="alert">{{ error() }}</p>
+          <button type="button" class="btn-primary" (click)="reintentar()">Reintentar</button>
+        </div>
+      }
+
+      @case ('resultado') {
+        @if (resultado(); as r) {
+          <div class="resultado">
+            <p class="progreso__fase">Calibración completa</p>
+            <h2>Tu nivel inicial</h2>
+            <p class="resultado__nivel">{{ formatearNivel(r.nivelInicial) }}</p>
+            <p class="resultado__puntaje">{{ r.puntaje }} <span>pts</span></p>
+            <p class="eval__ayuda eval__ayuda--centrada">
+              Ajustamos la dificultad de tus primeros retos a este nivel.
+            </p>
+            <button type="button" class="btn-primary" (click)="entrar()">Entrar a KINET</button>
+          </div>
+        }
+      }
+
+      @default {
+        <div class="progreso">
+          <div class="progreso__fila">
+            <span class="progreso__fase">Fase de calibración</span>
+            <span class="progreso__conteo">Pregunta {{ indice() + 1 }} de {{ total() }}</span>
+          </div>
+          <div class="progreso__pista">
+            <div class="progreso__barra" [style.width.%]="progreso()"></div>
+          </div>
+        </div>
+
+        <div class="chip-wrap">
+          <span class="chip-algoritmo"><span class="punto"></span>Evaluación de nivel</span>
+        </div>
+
+        @for (p of [preguntaActual()]; track p.numero) {
+          <section class="eval__pregunta">
+            <h2>{{ p.texto }}</h2>
+            <p class="eval__ayuda">
+              <ion-icon name="options-outline" aria-hidden="true"></ion-icon>
+              Selecciona una opción para calibrar tus retos
+            </p>
+
+            <div class="eval__opciones">
+              @for (o of p.opciones; track o.id) {
+                <button type="button" class="opcion"
+                        [class.opcion--marcada]="marcada() === o.id"
+                        [disabled]="estado() === 'enviando'"
+                        (click)="responder(o.id)">
+                  <span class="opcion__fila">
+                    @if (o.etiqueta) {
+                      <span class="opcion__etiqueta" [class.opcion__etiqueta--destacada]="$last">{{ o.etiqueta }}</span>
+                    }
+                    <span class="opcion__flecha" aria-hidden="true">
+                      <ion-icon name="arrow-forward"></ion-icon>
+                    </span>
+                  </span>
+                  <span class="opcion__titulo">{{ o.titulo }}</span>
+                  <span class="opcion__desc">{{ o.descripcion }}</span>
+                </button>
+              }
+            </div>
+          </section>
+        }
+
+        @if (indice() > 0 && estado() === 'respondiendo') {
+          <button type="button" class="eval__anterior" (click)="anterior()">
+            <ion-icon name="arrow-back" aria-hidden="true"></ion-icon>
+            Pregunta anterior
+          </button>
+        }
+
+        <div class="eval__nota">
+          @if (estado() === 'enviando') {
+            <ion-spinner name="crescent"></ion-spinner>
+            <p>Calculando tu nivel…</p>
+          } @else {
+            <span class="nota__titulo">
+              <ion-icon name="pulse-outline" aria-hidden="true"></ion-icon>
+              Calibración inicial
+            </span>
+            <p>Tus respuestas definen tu nivel inicial y la dificultad de tus primeros retos.</p>
+          }
+        </div>
+      }
+    }
+  </div>
+</ion-content>

@@ -1,0 +1,46 @@
+:host {
+  display: block;
+}
+
+.encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 448px;
+  margin: 0 auto;
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.marca__logo {
+  font-size: 22px;
+  color: var(--kinet-primary);
+}
+
+.marca__nombre {
+  font-family: var(--kinet-font-display);
+  font-weight: 600;
+  font-size: 18px;
+  letter-spacing: 0.9px;
+  color: var(--kinet-text);
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 2px solid var(--kinet-accent);
+  border-radius: var(--kinet-radius-pill);
+  background: var(--kinet-surface-high);
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--kinet-text);
+  text-decoration: none;
+}

@@ -1,0 +1,49 @@
+<ion-content [fullscreen]="true">
+  <div class="perfil">
+    @if (usuario(); as u) {
+      <section class="hero">
+        <div class="hero__avatar">{{ iniciales(u.nombre) }}</div>
+        <h1>{{ u.nombre }}</h1>
+        @if (u.nickname) {
+          <p class="hero__nick">&#64;{{ u.nickname }}</p>
+        }
+        @if (u.nivelInicial) {
+          <span class="hero__nivel">{{ u.nivelInicial }}</span>
+        }
+      </section>
+
+      <section class="bloque">
+        <a routerLink="/tabs/perfil/editar" class="btn-primary btn-editar">Editar perfil</a>
+        <h2 class="bloque__titulo">Apariencia</h2>
+        <div class="segmento" role="radiogroup" aria-label="Tema de la aplicación">
+          @for (op of opcionesTema; track op.valor) {
+            <button type="button" role="radio" class="segmento__opcion"
+                    [class.segmento__opcion--activa]="tema.tema() === op.valor"
+                    [attr.aria-checked]="tema.tema() === op.valor"
+                    (click)="tema.cambiar(op.valor)">
+              <ion-icon [name]="op.icono" aria-hidden="true"></ion-icon>
+              {{ op.etiqueta }}
+            </button>
+          }
+        </div>
+      </section>
+
+      <section class="bloque">
+        <h2 class="bloque__titulo">Cuenta</h2>
+        <div class="fila">
+          <span class="fila__etiqueta">Correo</span>
+          <span class="fila__valor">{{ u.correo }}</span>
+        </div>
+      </section>
+
+      <button type="button" class="btn-salir" (click)="cerrarSesion()">
+        <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+        Cerrar sesión
+      </button>
+      <button type="button" class="btn-eliminar" (click)="confirmarEliminacion()">
+        Eliminar cuenta
+      </button>
+
+    }
+  </div>
+</ion-content>

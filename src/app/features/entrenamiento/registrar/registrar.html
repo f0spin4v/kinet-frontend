@@ -1,0 +1,206 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="toolbar-kinet">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/tabs/inicio" text=""></ion-back-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <div class="registro">
+    @if (estado() === 'formulario') {
+      <header class="titulo">
+        <p class="eyebrow"><span class="punto"></span>Registro de sesión</p>
+        <h1>Registrar sesión</h1>
+        <p class="titulo__lead">Introduce los datos de tu actividad de hoy.</p>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="formulario">
+        <!-- Tipo de actividad -->
+        <section class="campo">
+          <div class="campo__cabecera">
+            <span class="campo__label" id="lbl-tipo">Tipo de actividad</span>
+            @if (form.controls.tipo.value; as tipo) {
+              <span class="campo__valor">{{ etiqueta(tipo) }}</span>
+            }
+          </div>
+          <div class="selector" role="radiogroup" aria-labelledby="lbl-tipo">
+            @for (a of actividades; track a.valor) {
+              <button type="button" role="radio" class="opcion"
+                      [class.opcion--activa]="form.controls.tipo.value === a.valor"
+                      [attr.aria-checked]="form.controls.tipo.value === a.valor"
+                      (click)="elegirTipo(a.valor)">
+                <ion-icon [name]="a.icono" aria-hidden="true"></ion-icon>
+                <span>{{ a.etiqueta }}</span>
+              </button>
+            }
+          </div>
+          @if (mensaje('tipo'); as msg) {
+            <span class="field__error">{{ msg }}</span>
+          }
+        </section>
+
+        <!-- Duración -->
+        <section class="campo">
+          <div class="campo__cabecera">
+            <span class="campo__label">Duración total</span>
+            <span class="campo__ayuda">Minutos</span>
+          </div>
+          <div class="contador">
+            <button type="button" class="contador__boton" aria-label="Restar 5 minutos"
+                    [disabled]="form.controls.duracionMinutos.value <= MIN"
+                    (click)="cambiarDuracion(-PASO)">
+              <ion-icon name="remove" aria-hidden="true"></ion-icon>
+            </button>
+            <p class="contador__valor" aria-live="polite">
+              {{ form.controls.duracionMinutos.value }}<span>min</span>
+            </p>
+            <button type="button" class="contador__boton" aria-label="Sumar 5 minutos"
+                    [disabled]="form.controls.duracionMinutos.value >= MAX"
+                    (click)="cambiarDuracion(PASO)">
+              <ion-icon name="add" aria-hidden="true"></ion-icon>
+            </button>
+          </div>
+          <div class="atajos">
+            @for (m of atajos; track m) {
+              <button type="button" class="atajo"
+                      [class.atajo--activo]="form.controls.duracionMinutos.value === m"
+                      (click)="elegirDuracion(m)">{{ m }} min</button>
+            }
+          </div>
+        </section>
+
+        <!-- Intensidad -->
+        <section class="campo">
+          <div class="campo__cabecera">
+            <span class="campo__label" id="lbl-intensidad">Intensidad</span>
+          </div>
+          <div class="selector" role="radiogroup" aria-labelledby="lbl-intensidad">
+            @for (i of intensidades; track i.valor) {
+              <button type="button" role="radio" class="opcion opcion--compacta"
+                      [class.opcion--activa]="form.controls.intensidad.value === i.valor"
+                      [attr.aria-checked]="form.controls.intensidad.value === i.valor"
+                      (click)="elegirIntensidad(i.valor)">
+                <span class="nivel" [attr.data-nivel]="$index + 1" aria-hidden="true">
+                  <i></i><i></i><i></i>
+                </span>
+                <span>{{ i.etiqueta }}</span>
+              </button>
+            }
+          </div>
+          <span class="field__hint">{{ descripcionIntensidad() }}</span>
+        </section>
+
+        <!-- Repeticiones (solo fuerza y calistenia) -->
+        @if (usaRepeticiones(form.controls.tipo.value)) {
+          <section class="campo">
+            <div class="campo__cabecera">
+              <label class="campo__label" for="repeticiones">Repeticiones</label>
+              <span class="campo__ayuda">Opcional</span>
+            </div>
+            <div class="field__box" [class.field__box--error]="mensaje('repeticiones')">
+              <ion-icon name="repeat-outline" aria-hidden="true"></ion-icon>
+              <input id="repeticiones" type="number" inputmode="numeric" min="1" max="2000"
+                     formControlName="repeticiones" placeholder="Ej. 30" />
+            </div>
+            @if (mensaje('repeticiones'); as msg) {
+              <span class="field__error">{{ msg }}</span>
+            } @else {
+              <span class="field__hint">Cuentan para retos de repeticiones, como las dominadas acumuladas.</span>
+            }
+          </section>
+        }
+
+        <!-- Notas -->
+        <section class="campo">
+          <div class="campo__cabecera">
+            <label class="campo__label" for="nota">Notas de sesión</label>
+            <span class="campo__ayuda">{{ form.controls.nota.value.length }}/300</span>
+          </div>
+          <textarea id="nota" class="nota" formControlName="nota" rows="3" maxlength="300"
+                    placeholder="Sensaciones, peso añadido o notas técnicas…"></textarea>
+        </section>
+
+        @if (error()) {
+          <p class="alert-error" role="alert">{{ error() }}</p>
+        }
+
+        <button type="submit" class="btn-primary btn-guardar" [disabled]="enviando()">
+          @if (enviando()) {
+            <ion-spinner name="crescent"></ion-spinner>
+          } @else {
+            <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
+            Guardar entrenamiento
+          }
+        </button>
+      </form>
+    } @else{
+      @if (resultado(); as r) {
+      @if (r.estado === 'VALIDADO') {
+        <section class="resultado">
+          <div class="resultado__icono resultado__icono--ok">
+            <ion-icon name="checkmark" aria-hidden="true"></ion-icon>
+          </div>
+          <p class="eyebrow eyebrow--centro">Sesión validada</p>
+          <p class="resultado__xp">+{{ numero(r.xpSesion) }}<span>XP</span></p>
+          <p class="resultado__total">Total acumulado: {{ numero(r.xpTotal) }} XP</p>
+
+          <div class="racha" [class.racha--sube]="r.rachaAumento">
+            <ion-icon name="flame" aria-hidden="true"></ion-icon>
+            <div>
+              <p class="racha__valor">{{ r.rachaActual }} {{ r.rachaActual === 1 ? 'día' : 'días' }}</p>
+              <p class="racha__texto">{{ r.rachaAumento ? '¡Tu racha subió!' : 'Ya habías entrenado hoy' }}</p>
+            </div>
+            @if (r.rachaAumento) {
+              <span class="racha__chip">+1</span>
+            }
+          </div>
+
+          @if (r.retos.length) {
+            <div class="avances">
+              <p class="campo__label">Retos que avanzaste</p>
+              @for (a of r.retos; track a.retoId) {
+                <div class="avance" [class.avance--completo]="a.completado">
+                  <div class="avance__cabecera">
+                    <span class="avance__titulo">{{ a.titulo }}</span>
+                    <span class="avance__cifra">{{ a.progresoActual }}/{{ a.meta }}</span>
+                  </div>
+                  <app-barra-progreso [valor]="a.progresoActual" [meta]="a.meta" [completado]="a.completado" />
+                  @if (a.completado) {
+                    <p class="avance__premio">
+                      <ion-icon name="trophy" aria-hidden="true"></ion-icon>
+                      ¡Reto completado! +{{ numero(a.recompensaXp) }} XP
+                    </p>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <div class="acciones">
+            <button type="button" class="btn-primary" (click)="volverAlInicio()">Volver al inicio</button>
+            <button type="button" class="btn-secundario" (click)="registrarOtra()">Registrar otra sesión</button>
+          </div>
+        </section>
+      } @else {
+        <section class="resultado">
+          <div class="resultado__icono resultado__icono--error">
+            <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+          </div>
+          <p class="eyebrow eyebrow--centro eyebrow--error">Sesión no validada</p>
+          <h2>No pudimos validar esta sesión</h2>
+          <p class="resultado__motivo">{{ r.motivoRechazo }}</p>
+          <p class="resultado__nota">
+            La sesión quedó registrada y un administrador puede revisarla.
+            Si te equivocaste al ingresar los datos, corrígelos y vuelve a enviarla.
+          </p>
+          <div class="acciones">
+            <button type="button" class="btn-primary" (click)="corregir()">Corregir datos</button>
+            <button type="button" class="btn-secundario" (click)="volverAlInicio()">Volver al inicio</button>
+          </div>
+        </section>
+      }
+    }
+    }
+  </div>
+</ion-content>

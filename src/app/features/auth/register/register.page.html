@@ -1,0 +1,95 @@
+<ion-content [fullscreen]="true">
+  <div class="auth">
+    <header class="auth__brand">
+      <ion-icon name="triangle" class="auth__logo" aria-hidden="true"></ion-icon>
+      <span class="auth__wordmark">KINET</span>
+    </header>
+
+    <div class="auth__intro">
+      <p class="auth__eyebrow"><span class="auth__dot"></span>Nuevo atleta</p>
+      <h1>Crea tu cuenta</h1>
+      <p class="auth__lead">Mide tu nivel y empieza a competir.</p>
+    </div>
+
+    <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="auth__form">
+      <div class="field">
+        <label class="field__label" for="nombre">Nombre</label>
+        <div class="field__box" [class.field__box--error]="mensaje('nombre')">
+          <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+          <input id="nombre" type="text" formControlName="nombre"
+                 autocomplete="name" placeholder="Tu nombre completo" />
+        </div>
+        @if (mensaje('nombre'); as msg) {
+          <span class="field__error">{{ msg }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="nickname">Nickname</label>
+        <div class="field__box" [class.field__box--error]="mensaje('nickname')">
+          <ion-icon name="at-outline" aria-hidden="true"></ion-icon>
+          <input id="nickname" type="text" formControlName="nickname"
+                 autocomplete="username" autocapitalize="off" spellcheck="false"
+                 placeholder="tu_nickname" />
+        </div>
+        @if (mensaje('nickname'); as msg) {
+          <span class="field__error">{{ msg }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="correo">Correo</label>
+        <div class="field__box" [class.field__box--error]="mensaje('correo')">
+          <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
+          <input id="correo" type="email" formControlName="correo"
+                 autocomplete="email" inputmode="email" placeholder="tu@correo.com" />
+        </div>
+        @if (mensaje('correo'); as msg) {
+          <span class="field__error">{{ msg }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="contrasena">Contraseña</label>
+        <div class="field__box" [class.field__box--error]="mensaje('contrasena')">
+          <ion-icon name="lock-closed-outline" aria-hidden="true"></ion-icon>
+          <input id="contrasena" [type]="verContrasena() ? 'text' : 'password'"
+                 formControlName="contrasena" autocomplete="new-password" placeholder="••••••••" />
+          <button type="button" class="field__toggle" (click)="verContrasena.set(!verContrasena())"
+                  [attr.aria-label]="verContrasena() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+            <ion-icon [name]="verContrasena() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+          </button>
+        </div>
+        @if (mensaje('contrasena'); as msg) {
+          <span class="field__error">{{ msg }}</span>
+        } @else {
+          <span class="field__hint">Mínimo 8 caracteres, con al menos una letra y un número.</span>
+        }
+      </div>
+
+      <label class="check">
+        <input type="checkbox" formControlName="aceptaDatos" />
+        <span>Acepto la política de tratamiento de datos personales.</span>
+      </label>
+      @if (mensaje('aceptaDatos'); as msg) {
+        <span class="field__error">{{ msg }}</span>
+      }
+
+      @if (errorServidor()) {
+        <p class="alert-error" role="alert">{{ errorServidor() }}</p>
+      }
+
+      <button type="submit" class="btn-primary" [disabled]="cargando()">
+        @if (cargando()) {
+          <ion-spinner name="crescent"></ion-spinner>
+        } @else {
+          Crear cuenta
+        }
+      </button>
+    </form>
+
+    <p class="auth__switch">
+      ¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a>
+    </p>
+  </div>
+</ion-content>

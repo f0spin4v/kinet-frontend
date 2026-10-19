@@ -1,0 +1,18 @@
+ion-title {
+  font-family: var(--kinet-font-display);
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.editar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 448px;
+  margin: 0 auto;
+  padding: 24px 20px 32px;
+}
+
+.btn-primary {
+  margin-top: 8px;
+}

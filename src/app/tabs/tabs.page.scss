@@ -1,0 +1,24 @@
+ion-tab-bar {
+  --background: var(--kinet-bg);
+  --border: 0;
+  height: 64px;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.25);
+}
+
+ion-tab-button {
+  --color: var(--kinet-text-muted);
+  --color-selected: var(--kinet-accent);
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  ion-label {
+    margin-top: 4px;
+    font-family: var(--kinet-font-display);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.55px;
+    text-transform: uppercase;
+  }
+}

@@ -1,0 +1,317 @@
+.retos {
+  max-width: 448px;
+  margin: 0 auto;
+  padding: 16px 20px 32px;
+}
+
+// ----- Filtro -----
+.filtro {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 28px;
+  padding: 4px;
+  border-radius: var(--kinet-radius-card);
+  background: var(--kinet-surface);
+}
+
+.filtro__opcion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  font-family: var(--kinet-font-display);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--kinet-text-muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+
+  &--activa {
+    background: var(--kinet-surface-high);
+    color: var(--kinet-text);
+  }
+}
+
+.filtro__cuenta {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: var(--kinet-radius-pill);
+  background: var(--kinet-surface-highest);
+  font-size: 11px;
+  color: var(--kinet-text-secondary);
+
+  .filtro__opcion--activa & {
+    background: rgba(0, 210, 255, 0.15);
+    color: var(--kinet-accent);
+  }
+}
+
+// ----- Secciones -----
+.seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  & + & { margin-top: 32px; }
+}
+
+.seccion__cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+
+  h2 {
+    margin: 0;
+    font-family: var(--kinet-font-display);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.55px;
+    text-transform: uppercase;
+    color: var(--kinet-text-muted);
+  }
+}
+
+.seccion__nota {
+  font-size: 11px;
+  color: var(--kinet-text-muted);
+}
+
+// Chip de recompensa (compartido por los tres tipos de tarjeta)
+.xp {
+  flex-shrink: 0;
+  padding: 4px 10px;
+  border-radius: var(--kinet-radius-pill);
+  background: rgba(0, 102, 255, 0.15);
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--kinet-primary-soft);
+
+  &--ganada {
+    background: rgba(0, 210, 255, 0.15);
+    color: var(--kinet-accent);
+  }
+}
+
+// ----- Tarjeta de misión -----
+.mision,
+.reto,
+.completado {
+  border-radius: var(--kinet-radius-card);
+  background: var(--kinet-surface);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.15s;
+
+  &:active { transform: scale(0.98); }
+}
+
+.mision {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+}
+
+.mision__icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background: var(--kinet-surface-high);
+  font-size: 20px;
+  color: var(--kinet-accent);
+}
+
+.mision__cuerpo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mision__titulo {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--kinet-text);
+}
+
+.mision__cifra {
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: var(--kinet-text-secondary);
+}
+
+// ----- Tarjeta de reto semanal -----
+.reto {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+}
+
+.reto__cabecera,
+.reto__pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--kinet-radius-pill);
+  background: var(--kinet-surface-highest);
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.55px;
+  text-transform: uppercase;
+  color: var(--kinet-accent-soft);
+
+  ion-icon { font-size: 13px; }
+
+  &--grupal {
+    background: rgba(0, 102, 255, 0.2);
+    color: var(--kinet-accent);
+  }
+}
+
+.reto__tiempo {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--kinet-text-secondary);
+}
+
+.reto__titulo {
+  margin: 0;
+  font-family: var(--kinet-font-display);
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 24px;
+  color: var(--kinet-text);
+}
+
+.reto__desc {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--kinet-text-secondary);
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.reto__cifra {
+  font-size: 13px;
+  color: var(--kinet-text-secondary);
+
+  strong {
+    font-family: var(--kinet-font-display);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--kinet-text);
+  }
+}
+
+// ----- Tarjeta de completado -----
+.completado {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+}
+
+.completado__icono {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border-radius: var(--kinet-radius-pill);
+  background: rgba(0, 210, 255, 0.12);
+  font-size: 20px;
+  color: var(--kinet-accent);
+}
+
+.completado__cuerpo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.completado__titulo {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--kinet-text);
+}
+
+.completado__detalle {
+  font-size: 12px;
+  color: var(--kinet-text-secondary);
+}
+
+// ----- Estados -----
+.esqueleto {
+  height: 120px;
+  margin: 0 0 12px;
+  border-radius: var(--kinet-radius-card);
+}
+
+.bloque-error {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 16px;
+  text-align: center;
+
+  ion-icon {
+    font-size: 40px;
+    color: var(--kinet-text-muted);
+  }
+
+  strong {
+    font-family: var(--kinet-font-display);
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--kinet-text);
+  }
+
+  p {
+    max-width: 280px;
+    margin: 0;
+    font-size: 14px;
+    line-height: 20px;
+    color: var(--kinet-text-secondary);
+  }
+}

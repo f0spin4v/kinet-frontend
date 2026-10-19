@@ -1,0 +1,102 @@
+// ===== Tokens de KINET =====
+// Modo oscuro: extraído de Figma. Modo claro: propuesta derivada (Figma no lo tiene).
+
+:root {
+  // Valores que no cambian entre modos
+  --kinet-primary: #0066ff;
+  --kinet-radius-card: 12px;
+  --kinet-radius-pill: 9999px;
+  --kinet-font-display: 'Space Grotesk', sans-serif;
+  --kinet-font-body: 'Plus Jakarta Sans', sans-serif;
+
+  // Modo claro
+   color-scheme: light;
+  --kinet-bg: #f4f5f8;
+  --kinet-bg-rgb: 244, 245, 248;
+  --kinet-surface: #ffffff;
+  --kinet-surface-raised: #fafbfc;
+  --kinet-surface-high: #e6e8ee;
+  --kinet-surface-highest: #dcdfe6;
+  --kinet-text: #16181d;
+  --kinet-text-rgb: 22, 24, 29;
+  --kinet-text-secondary: #464b5a;
+  --kinet-text-muted: #6b7080;
+  --kinet-accent: #0088b0;
+  --kinet-accent-soft: #006c8f;
+  --kinet-primary-soft: #2f5bd8;
+  --kinet-glow: 0 0 12px 1px rgba(0, 136, 176, 0.35);
+  --ion-color-danger: #d32f2f;
+  --ion-color-danger-rgb: 211, 47, 47;
+  --ion-color-danger-contrast: #ffffff;
+  --ion-color-danger-contrast-rgb: 255, 255, 255;
+  --ion-color-danger-shade: #ba2929;
+  --ion-color-danger-tint: #d74444;
+}
+
+
+// Valores del modo oscuro, definidos una sola vez
+@mixin tema-oscuro {
+  color-scheme: dark;
+  --kinet-bg: #121316;
+  --kinet-bg-rgb: 18, 19, 22;
+  --kinet-surface: #1b1b1f;
+  --kinet-surface-raised: #1f1f23;
+  --kinet-surface-high: #292a2d;
+  --kinet-surface-highest: #343538;
+  --kinet-text: #e3e2e6;
+  --kinet-text-rgb: 227, 226, 230;
+  --kinet-text-secondary: #c2c6d8;
+  --kinet-text-muted: #8c90a1;
+  --kinet-accent: #00d2ff;
+  --kinet-accent-soft: #a5e7ff;
+  --kinet-primary-soft: #b3c5ff;
+  --kinet-glow: 0 0 12px 1px rgba(0, 210, 255, 0.75);
+  --ion-color-danger: #ff5a6a;
+  --ion-color-danger-rgb: 255, 90, 106;
+  --ion-color-danger-contrast: #000000;
+  --ion-color-danger-contrast-rgb: 0, 0, 0;
+  --ion-color-danger-shade: #e04f5d;
+  --ion-color-danger-tint: #ff6b79;
+}
+
+// "Sistema": oscuro si el sistema lo pide, salvo que el usuario forzó claro
+@media (prefers-color-scheme: dark) {
+  :root:not(.tema-claro) {
+    @include tema-oscuro;
+  }
+}
+
+// "Oscuro": siempre oscuro
+:root.tema-oscuro {
+  @include tema-oscuro;
+}
+
+// ===== Conexión con Ionic =====
+:root {
+  --ion-font-family: var(--kinet-font-body);
+  --ion-background-color: var(--kinet-bg);
+  --ion-background-color-rgb: var(--kinet-bg-rgb);
+  --ion-text-color: var(--kinet-text);
+  --ion-text-color-rgb: var(--kinet-text-rgb);
+  --ion-toolbar-background: var(--kinet-bg);
+  --ion-tab-bar-background: var(--kinet-bg);
+  --ion-tab-bar-color: var(--kinet-text-muted);
+  --ion-tab-bar-color-selected: var(--kinet-accent);
+  --ion-item-background: var(--kinet-surface);
+  --ion-card-background: var(--kinet-surface);
+  --ion-border-color: var(--kinet-surface-high);
+
+  --ion-color-primary: #0066ff;
+  --ion-color-primary-rgb: 0, 102, 255;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #005ae0;
+  --ion-color-primary-tint: #1a75ff;
+
+  --ion-color-secondary: #00d2ff;
+  --ion-color-secondary-rgb: 0, 210, 255;
+  --ion-color-secondary-contrast: #000000;
+  --ion-color-secondary-contrast-rgb: 0, 0, 0;
+  --ion-color-secondary-shade: #00b9e0;
+  --ion-color-secondary-tint: #1ad7ff;
+}

@@ -1,0 +1,133 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="toolbar-kinet">
+    <app-encabezado />
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  <ion-refresher slot="fixed" (ionRefresh)="cargar($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="retos">
+    <header class="titulo-pagina">
+      <p class="eyebrow"><span class="punto"></span>Desafíos</p>
+      <h1>Retos</h1>
+      <p class="titulo-pagina__lead">Cada sesión que registras suma a tus misiones y retos.</p>
+    </header>
+
+    <div class="filtro" role="tablist" aria-label="Filtrar retos">
+      <button type="button" role="tab" class="filtro__opcion"
+              [class.filtro__opcion--activa]="filtro() === 'activos'"
+              [attr.aria-selected]="filtro() === 'activos'"
+              (click)="filtro.set('activos')">
+        Activos
+        @if (retos()) {
+          <span class="filtro__cuenta">{{ totalActivos() }}</span>
+        }
+      </button>
+      <button type="button" role="tab" class="filtro__opcion"
+              [class.filtro__opcion--activa]="filtro() === 'completados'"
+              [attr.aria-selected]="filtro() === 'completados'"
+              (click)="filtro.set('completados')">
+        Completados
+        @if (retos()) {
+          <span class="filtro__cuenta">{{ completados().length }}</span>
+        }
+      </button>
+    </div>
+
+    @if (error()) {
+      <div class="bloque-error">
+        <p class="alert-error" role="alert">{{ error() }}</p>
+        <button type="button" class="btn-primary" (click)="cargar()">Reintentar</button>
+      </div>
+    }
+
+    @if (!retos()) {
+      @if (!error()) {
+        @for (i of [1, 2, 3]; track i) {
+          <ion-skeleton-text [animated]="true" class="esqueleto"></ion-skeleton-text>
+        }
+      }
+    } @else if (filtro() === 'activos') {
+      @if (misiones().length) {
+        <section class="seccion">
+          <div class="seccion__cabecera">
+            <h2>Misiones de hoy</h2>
+            <span class="seccion__nota">Se reinician a medianoche</span>
+          </div>
+          @for (m of misiones(); track m.id) {
+            <a class="mision" [routerLink]="['/tabs/retos', m.id]">
+              <span class="mision__icono"><ion-icon [name]="icono(m.categoria)" aria-hidden="true"></ion-icon></span>
+              <span class="mision__cuerpo">
+                <span class="mision__titulo">{{ m.titulo }}</span>
+                <app-barra-progreso [valor]="m.progreso" [meta]="m.meta" />
+                <span class="mision__cifra">{{ m.progreso }}/{{ m.meta }} {{ unidad(m.unidad) }}</span>
+              </span>
+              <span class="xp">+{{ numero(m.recompensaXp) }} XP</span>
+            </a>
+          }
+        </section>
+      }
+
+      @if (semanales().length) {
+        <section class="seccion">
+          <div class="seccion__cabecera">
+            <h2>Retos de la semana</h2>
+          </div>
+          @for (r of semanales(); track r.id) {
+            <a class="reto" [routerLink]="['/tabs/retos', r.id]">
+              <div class="reto__cabecera">
+                <span class="chip" [class.chip--grupal]="r.tipo === 'GRUPAL'">
+                  <ion-icon [name]="r.tipo === 'GRUPAL' ? 'people-outline' : 'person-outline'" aria-hidden="true"></ion-icon>
+                  {{ r.tipo === 'GRUPAL' ? 'Grupal' : 'Individual' }}
+                </span>
+                <span class="reto__tiempo">
+                  <ion-icon name="time-outline" aria-hidden="true"></ion-icon>
+                  {{ tiempo(r) }}
+                </span>
+              </div>
+              <h3 class="reto__titulo">{{ r.titulo }}</h3>
+              <p class="reto__desc">{{ r.descripcion }}</p>
+              <app-barra-progreso [valor]="r.progreso" [meta]="r.meta" />
+              <div class="reto__pie">
+                <span class="reto__cifra"><strong>{{ r.progreso }}</strong>/{{ r.meta }} {{ unidad(r.unidad) }}</span>
+                <span class="xp">+{{ numero(r.recompensaXp) }} XP</span>
+              </div>
+            </a>
+          }
+        </section>
+      }
+
+      @if (totalActivos() === 0) {
+        <div class="vacio">
+          <ion-icon name="checkmark-done-outline" aria-hidden="true"></ion-icon>
+          <strong>¡Todo al día!</strong>
+          <p>Completaste todos tus retos activos. Vuelve mañana por nuevas misiones.</p>
+        </div>
+      }
+    } @else {
+      @if (completados().length) {
+        <section class="seccion">
+          @for (c of completados(); track c.id) {
+            <a class="completado" [routerLink]="['/tabs/retos', c.id]">
+              <span class="completado__icono"><ion-icon name="trophy" aria-hidden="true"></ion-icon></span>
+              <span class="completado__cuerpo">
+                <span class="completado__titulo">{{ c.titulo }}</span>
+                <span class="completado__detalle">{{ c.meta }} {{ unidad(c.unidad) }} · {{ c.periodicidad === 'DIARIA' ? 'Misión' : 'Reto semanal' }}</span>
+              </span>
+              <span class="xp xp--ganada">+{{ numero(c.recompensaXp) }} XP</span>
+            </a>
+          }
+        </section>
+      } @else {
+        <div class="vacio">
+          <ion-icon name="trophy" aria-hidden="true"></ion-icon>
+          <strong>Aún no completas retos</strong>
+          <p>Registra sesiones para avanzar. Aquí verás los que vayas cumpliendo.</p>
+        </div>
+      }
+    }
+  </div>
+</ion-content>
