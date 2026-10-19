@@ -1,11 +1,15 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Preferences } from '@capacitor/preferences';
-import { Observable, firstValueFrom, tap } from 'rxjs';
+import { Observable, firstValueFrom, map, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest, RegistroRequest, Usuario } from '../models/auth.models';
+import {
+  AuthResponse, LoginRequest, RegistroRequest, SesionDto, Usuario, UsuarioDto, aUsuario,
+} from '../models/auth.models';
 
 const TOKEN_KEY = 'kinet_token';
+
+const aSesion = (s: SesionDto): AuthResponse => ({ token: s.token, usuario: aUsuario(s.usuario) });
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -31,21 +35,33 @@ export class AuthService {
 
     this._token.set(value);
     try {
-      const usuario = await firstValueFrom(this.http.get<Usuario>(`${this.api}/usuarios/me`));
-      this._usuario.set(usuario);
+      const dto = await firstValueFrom(this.http.get<UsuarioDto>(`${this.api}/usuarios/me`));
+      this._usuario.set(aUsuario(dto));
     } catch {
       await this.cerrarSesion(); // token vencido o inválido
     }
   }
 
   registrar(datos: RegistroRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.api}/auth/registro`, datos)
-      .pipe(tap(r => this.guardarSesion(r)));
+    const cuerpo = {
+      nombres: datos.nombres,
+      apellidos: datos.apellidos,
+      correo: datos.correo,
+      contrasena: datos.contrasena,
+      gamertag: datos.nickname,
+      aceptaPolitica: datos.aceptaDatos,
+    };
+    return this.http.post<SesionDto>(`${this.api}/auth/registro`, cuerpo).pipe(
+      map(aSesion),
+      tap(r => this.guardarSesion(r))
+    );
   }
 
   iniciarSesion(datos: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.api}/auth/login`, datos)
-      .pipe(tap(r => this.guardarSesion(r)));
+    return this.http.post<SesionDto>(`${this.api}/auth/login`, datos).pipe(
+      map(aSesion),
+      tap(r => this.guardarSesion(r))
+    );
   }
 
   /** Para actualizar el nivel después de la evaluación o al editar el perfil. */

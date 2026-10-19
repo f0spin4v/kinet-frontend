@@ -1,9 +1,10 @@
-export type OpcionId = 'A' | 'B';
+export type OpcionId = number;
 
 export interface Opcion {
   id: OpcionId;
   titulo: string;
   descripcion: string;
+  etiqueta?: string; // aún no la envía el backend
 }
 
 export interface Pregunta {
@@ -12,19 +13,21 @@ export interface Pregunta {
   opciones: Opcion[];
 }
 
-export interface EvaluacionRequest {
-  respuestas: OpcionId[]; // en orden, una por pregunta
-}
-
 export interface EvaluacionResponse {
-  puntaje: number;
   nivelInicial: string;
   fecha: string;
 }
 
-export interface Opcion {
-  id: OpcionId;
-  titulo: string;
-  descripcion: string;
-  etiqueta?: string; // aún no la envía el backend
+/** PreguntaDTO del backend. */
+export interface PreguntaDto {
+  id: number;
+  orden: number;
+  enunciado: string;
+  opciones: { id: number; titulo: string; descripcion: string }[];
+}
+
+/** ResultadoEvaluacionDTO del backend. */
+export interface ResultadoEvaluacionDto {
+  nivelHabilidad: string;
+  fecha: string;
 }
