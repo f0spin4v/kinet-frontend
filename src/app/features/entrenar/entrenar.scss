@@ -1,0 +1,81 @@
+.resultado,
+.cronometro {
+  margin-bottom: 24px;
+}
+
+.resultado .rejilla,
+.resultado .aviso-ok {
+  margin-bottom: 12px;
+}
+
+.cronometro {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  @media (min-width: 992px) {
+    max-width: 760px;
+  }
+}
+
+.cronometro__tiempo {
+  margin: 0;
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 48px;
+  line-height: 52px;
+  letter-spacing: 1px;
+  font-variant-numeric: tabular-nums;
+  color: var(--kinet-text);
+
+  @media (min-width: 768px) {
+    font-size: 64px;
+    line-height: 68px;
+  }
+}
+
+.aviso-largo {
+  background: rgba(255, 176, 32, 0.14);
+  color: #b87400;
+}
+
+.actividad {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+
+  > ion-icon {
+    font-size: 32px;
+    color: var(--kinet-accent);
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--kinet-accent);
+  }
+
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.actividad__ir {
+  margin-top: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--kinet-primary-soft);
+}
+
+.cronometro .acciones .btn-primary,
+.cronometro .acciones .btn-peligro {
+  padding: 0 24px;
+  white-space: nowrap;
+}

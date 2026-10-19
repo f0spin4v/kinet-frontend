@@ -5,7 +5,7 @@
         <ion-icon name="triangle" class="eval__logo" aria-hidden="true"></ion-icon>
         <span class="eval__wordmark">KINET</span>
       </div>
-      <button type="button" class="eval__salir" (click)="salir()">Salir</button>
+      <button type="button" class="eval__salir" (click)="salir()">{{ repitiendo ? 'Cancelar' : 'Salir' }}</button>
     </header>
 
     @switch (estado()) {
@@ -28,12 +28,14 @@
           <div class="resultado">
             <p class="progreso__fase">Calibración completa</p>
             <h2>Tu nivel inicial</h2>
-            <p class="resultado__nivel">{{ formatearNivel(r.nivelInicial) }}</p>
-            <p class="resultado__puntaje">{{ r.puntaje }} <span>pts</span></p>
+            <p class="resultado__nivel">{{ formatearNivel(r.nivelHabilidad) }}</p>
+            @for (v of votos(r); track v.nivel) {
+              <p class="resultado__puntaje">{{ formatearNivel(v.nivel) }}: {{ v.peso }} <span>pts</span></p>
+            }
             <p class="eval__ayuda eval__ayuda--centrada">
               Ajustamos la dificultad de tus primeros retos a este nivel.
             </p>
-            <button type="button" class="btn-primary" (click)="entrar()">Entrar a KINET</button>
+            <button type="button" class="btn-primary" (click)="entrar()">{{ repitiendo ? 'Volver al perfil' : 'Entrar a KINET' }}</button>
           </div>
         }
       }
@@ -53,9 +55,9 @@
           <span class="chip-algoritmo"><span class="punto"></span>Evaluación de nivel</span>
         </div>
 
-        @for (p of [preguntaActual()]; track p.numero) {
+        @for (p of [preguntaActual()]; track p.id) {
           <section class="eval__pregunta">
-            <h2>{{ p.texto }}</h2>
+            <h2>{{ p.enunciado }}</h2>
             <p class="eval__ayuda">
               <ion-icon name="options-outline" aria-hidden="true"></ion-icon>
               Selecciona una opción para calibrar tus retos
@@ -68,9 +70,6 @@
                         [disabled]="estado() === 'enviando'"
                         (click)="responder(o.id)">
                   <span class="opcion__fila">
-                    @if (o.etiqueta) {
-                      <span class="opcion__etiqueta" [class.opcion__etiqueta--destacada]="$last">{{ o.etiqueta }}</span>
-                    }
                     <span class="opcion__flecha" aria-hidden="true">
                       <ion-icon name="arrow-forward"></ion-icon>
                     </span>

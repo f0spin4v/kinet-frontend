@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Preferences } from '@capacitor/preferences';
 import { Observable, firstValueFrom, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AuthResponse, LoginRequest, RegistroRequest, Usuario } from '../models/auth.models';
+import { LoginRequest, Mensaje, RegistroRequest, Rol, Sesion, Usuario } from '../models/api.models';
 
 const TOKEN_KEY = 'kinet_token';
 
@@ -19,7 +19,22 @@ export class AuthService {
   readonly token = this._token.asReadonly();
   readonly usuario = this._usuario.asReadonly();
   readonly autenticado = computed(() => this._token() !== null);
-  readonly evaluado = computed(() => this._usuario()?.nivelInicial != null);
+  readonly rol = computed<Rol | null>(() => this._usuario()?.rol ?? null);
+  readonly esJugador = computed(() => this.rol() === 'JUGADOR');
+  readonly esStaff = computed(() => this.rol() === 'ADMINISTRADOR' || this.rol() === 'ENTRENADOR');
+  /** Solo los jugadores hacen la evaluación de nivel; el equipo no. */
+  readonly evaluado = computed(() => !this.esJugador() || this._usuario()?.nivelHabilidad != null);
+  /** "Laura Gómez" */
+  readonly nombreCompleto = computed(() => {
+    const u = this._usuario();
+    return u ? `${u.nombres} ${u.apellidos}`.trim() : '';
+  });
+
+  /** Dónde cae cada rol al entrar. */
+  rutaInicial(): string {
+    if (this.esStaff()) return '/staff';
+    return this.evaluado() ? '/tabs' : '/evaluacion';
+  }
 
   /** Recupera la sesión guardada al abrir la app. Solo se ejecuta una vez. */
   async cargarSesion(): Promise<void> {
@@ -38,14 +53,20 @@ export class AuthService {
     }
   }
 
-  registrar(datos: RegistroRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.api}/auth/registro`, datos)
-      .pipe(tap(r => this.guardarSesion(r)));
+  registrar(datos: RegistroRequest): Observable<Sesion> {
+    return this.http.post<Sesion>(`${this.api}/auth/registro`, datos).pipe(tap(r => this.guardarSesion(r)));
   }
 
-  iniciarSesion(datos: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${this.api}/auth/login`, datos)
-      .pipe(tap(r => this.guardarSesion(r)));
+  iniciarSesion(datos: LoginRequest): Observable<Sesion> {
+    return this.http.post<Sesion>(`${this.api}/auth/login`, datos).pipe(tap(r => this.guardarSesion(r)));
+  }
+
+  recuperarContrasena(correo: string): Observable<Mensaje> {
+    return this.http.post<Mensaje>(`${this.api}/auth/recuperar-contrasena`, { correo });
+  }
+
+  restablecerContrasena(token: string, nuevaContrasena: string): Observable<Mensaje> {
+    return this.http.post<Mensaje>(`${this.api}/auth/restablecer-contrasena`, { token, nuevaContrasena });
   }
 
   /** Para actualizar el nivel después de la evaluación o al editar el perfil. */
@@ -59,7 +80,7 @@ export class AuthService {
     await Preferences.remove({ key: TOKEN_KEY });
   }
 
-  private guardarSesion(r: AuthResponse): void {
+  private guardarSesion(r: Sesion): void {
     this._token.set(r.token);
     this._usuario.set(r.usuario);
     Preferences.set({ key: TOKEN_KEY, value: r.token });

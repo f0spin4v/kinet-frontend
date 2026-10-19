@@ -1,9 +1,3 @@
-.perfil {
-  max-width: 448px;
-  margin: 0 auto;
-  padding: calc(env(safe-area-inset-top) + 32px) 20px 32px;
-}
-
 // ----- Encabezado con avatar -----
 .hero {
   display: flex;
@@ -23,6 +17,7 @@
 
 .hero__avatar {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
   justify-content: center;
   width: 96px;
@@ -169,3 +164,15 @@
   cursor: pointer;
 }
 
+
+.btn-repetir {
+  margin-top: 12px;
+}
+
+@media (min-width: 768px) {
+  .hero__avatar {
+    width: 112px;
+    height: 112px;
+    font-size: 38px;
+  }
+}

@@ -40,6 +40,7 @@
         @if (invalido('contrasena')) {
           <span class="field__error">Escribe tu contraseña.</span>
         }
+        <a routerLink="/recuperar-contrasena" class="enlace-chico">¿Olvidaste tu contraseña?</a>
       </div>
 
       @if (error()) {
@@ -54,6 +55,20 @@
         }
       </button>
     </form>
+
+    @if (cuentasDePrueba.length) {
+      <section class="prueba" aria-label="Cuentas de prueba">
+        <p class="prueba__titulo">Cuentas de prueba</p>
+        <div class="prueba__lista">
+          @for (c of cuentasDePrueba; track c.correo) {
+            <button type="button" class="prueba__cuenta" (click)="usarCuenta(c)">
+              <span class="prueba__rol">{{ c.rol }}</span>
+              <span class="prueba__correo">{{ c.correo }}</span>
+            </button>
+          }
+        </div>
+      </section>
+    }
 
     <p class="auth__switch">
       ¿Aún no tienes cuenta? <a routerLink="/registro">Crea tu cuenta</a>

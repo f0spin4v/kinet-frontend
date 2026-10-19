@@ -8,19 +8,14 @@ import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './app/core/interceptors/auth-interceptor';
-import {EntrenamientoService} from './app/core/services/entrenamiento';
-import {RetoService} from './app/core/services/retos';
-import {EntrenamientoMockService} from './app/core/mocks/entrenamiento-mock';
-import {RetoMockService} from './app/core/mocks/retos-mock';
+import { respuestaApiInterceptor } from './app/core/interceptors/respuesta-api';
 
 bootstrapApplication(AppComponent, {
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules), withComponentInputBinding()),
-    provideHttpClient(withInterceptors([authInterceptor])),
+    provideHttpClient(withInterceptors([authInterceptor, respuestaApiInterceptor])),
     provideAppInitializer(() => inject(TemaService).iniciar()),
-    { provide: EntrenamientoService, useClass: EntrenamientoMockService },
-    { provide: RetoService, useClass: RetoMockService },
   ],
 });

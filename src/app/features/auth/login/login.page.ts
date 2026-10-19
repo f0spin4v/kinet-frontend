@@ -6,8 +6,16 @@ import { IonContent, IonIcon, IonSpinner } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { eyeOffOutline, eyeOutline, lockClosedOutline, mailOutline, triangle } from 'ionicons/icons';
 import { finalize } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/services/auth';
 import { mensajeDeError } from '../../../core/utils/http-error';
+
+/** Cuentas de los datos de prueba (kinet_bd.sql). Solo se ofrecen fuera de producción. */
+const CUENTAS_DE_PRUEBA = [
+  { rol: 'Jugador', correo: 'laura@kinet.com', contrasena: 'Kinet2026' },
+  { rol: 'Entrenador', correo: 'entrenador@kinet.com', contrasena: 'Kinet2026' },
+  { rol: 'Administrador', correo: 'admin@kinet.com', contrasena: 'Admin2026' },
+];
 
 @Component({
   selector: 'app-login',
@@ -28,6 +36,7 @@ export class LoginPage {
   cargando = signal(false);
   error = signal<string | null>(null);
   verContrasena = signal(false);
+  cuentasDePrueba = environment.production ? [] : CUENTAS_DE_PRUEBA;
 
   constructor() {
     addIcons({ mailOutline, lockClosedOutline, eyeOutline, eyeOffOutline, triangle });
@@ -36,6 +45,11 @@ export class LoginPage {
   invalido(campo: 'correo' | 'contrasena'): boolean {
     const control = this.form.controls[campo];
     return control.invalid && control.touched;
+  }
+
+  usarCuenta(cuenta: { correo: string; contrasena: string }): void {
+    this.form.setValue({ correo: cuenta.correo, contrasena: cuenta.contrasena });
+    this.error.set(null);
   }
 
   enviar(): void {
@@ -50,10 +64,7 @@ export class LoginPage {
     this.auth.iniciarSesion(this.form.getRawValue())
       .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
-        next: r => this.router.navigateByUrl(
-          r.usuario.nivelInicial ? '/tabs' : '/evaluacion',
-          { replaceUrl: true }
-        ),
+        next: () => this.router.navigateByUrl(this.auth.rutaInicial(), { replaceUrl: true }),
         error: (e: HttpErrorResponse) => this.error.set(mensajeDeError(e)),
       });
   }

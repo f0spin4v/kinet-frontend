@@ -1,1 +1,59 @@
 @use '../auth-layout';
+
+.enlace-chico {
+  align-self: flex-end;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--kinet-accent);
+  text-decoration: none;
+}
+
+.prueba {
+  margin-top: 28px;
+  padding: 14px;
+  border: 1px dashed var(--kinet-surface-highest);
+  border-radius: var(--kinet-radius-card);
+}
+
+.prueba__titulo {
+  margin: 0 0 10px;
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--kinet-text-muted);
+}
+
+.prueba__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.prueba__cuenta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--kinet-surface-high);
+  border-radius: 10px;
+  background: var(--kinet-surface);
+  color: var(--kinet-text);
+  font-size: 13px;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--kinet-accent);
+  }
+}
+
+.prueba__rol {
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+}
+
+.prueba__correo {
+  color: var(--kinet-text-secondary);
+}

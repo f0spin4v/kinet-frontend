@@ -6,8 +6,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  max-width: 448px;
+  max-width: 480px;
   margin: 0 auto;
+
+  @media (min-width: 768px) {
+    max-width: 800px;
+    padding: 0 12px;
+  }
+
+  @media (min-width: 992px) {
+    max-width: 1200px;
+    padding: 0 20px;
+  }
+}
+
+.encabezado__acciones {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .marca {
@@ -29,6 +45,22 @@
   color: var(--kinet-text);
 }
 
+.campana {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--kinet-radius-pill);
+  color: var(--kinet-text-secondary);
+  font-size: 22px;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--kinet-accent);
+  }
+}
+
 .avatar {
   display: flex;
   align-items: center;
@@ -43,4 +75,85 @@
   font-size: 13px;
   color: var(--kinet-text);
   text-decoration: none;
+}
+
+// ----- Menú del avatar -----
+.menu {
+  position: relative;
+}
+
+button.avatar {
+  padding: 0;
+  cursor: pointer;
+}
+
+.menu__panel {
+  display: none;
+  position: fixed;
+  z-index: 100000;
+  min-width: 220px;
+  padding: 6px;
+  background: var(--kinet-surface);
+  border: 1px solid var(--kinet-surface-high);
+  border-radius: var(--kinet-radius-card);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+
+  &--abierto {
+    display: block;
+  }
+}
+
+.menu__cuenta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px 12px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--kinet-surface-high);
+  font-size: 14px;
+  color: var(--kinet-text);
+
+  strong {
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    font-size: 12px;
+    color: var(--kinet-text-muted);
+    overflow-wrap: anywhere;
+  }
+}
+
+.menu__opcion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 12px;
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  color: var(--kinet-text);
+  font-family: var(--kinet-font-body);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+
+  ion-icon {
+    font-size: 18px;
+    color: var(--kinet-text-secondary);
+  }
+
+  &:hover,
+  &:focus-visible {
+    background: var(--kinet-surface-high);
+  }
+
+  &--salir,
+  &--salir ion-icon {
+    color: var(--ion-color-danger);
+  }
 }

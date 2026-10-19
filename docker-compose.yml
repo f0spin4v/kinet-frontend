@@ -1,0 +1,8 @@
+# Solo el frontend: http://localhost:4200. Necesita el backend en http://localhost:8080 (docker-compose.yml de la raíz
+# levanta todo: base de datos, backend y frontend).
+services:
+  frontend:
+    build: .
+    container_name: kinet-frontend
+    ports:
+      - "4200:80"
