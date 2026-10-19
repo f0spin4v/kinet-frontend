@@ -1,6 +1,7 @@
 node_modules
 www
-android
 .angular
 .git
+.vscode
+android
 *.log
