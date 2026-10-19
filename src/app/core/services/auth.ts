@@ -4,7 +4,7 @@ import { Preferences } from '@capacitor/preferences';
 import { Observable, firstValueFrom, map, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
-  AuthResponse, LoginRequest, RegistroRequest, SesionDto, Usuario, UsuarioDto, aUsuario,
+  AuthResponse, LoginRequest, RegistroRequest, SesionDto, Usuario, UsuarioDto, aUsuario, evaluacionCompleta,
 } from '../models/auth.models';
 
 const TOKEN_KEY = 'kinet_token';
@@ -23,7 +23,10 @@ export class AuthService {
   readonly token = this._token.asReadonly();
   readonly usuario = this._usuario.asReadonly();
   readonly autenticado = computed(() => this._token() !== null);
-  readonly evaluado = computed(() => this._usuario()?.nivelInicial != null);
+  readonly evaluado = computed(() => {
+    const u = this._usuario();
+    return u !== null && evaluacionCompleta(u);
+  });
 
   /** Recupera la sesión guardada al abrir la app. Solo se ejecuta una vez. */
   async cargarSesion(): Promise<void> {

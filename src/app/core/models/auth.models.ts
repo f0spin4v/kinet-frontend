@@ -65,3 +65,8 @@ export function aUsuario(dto: UsuarioDto): Usuario {
     nivelInicial: dto.nivelHabilidad,
   };
 }
+
+/** Solo los jugadores hacen la evaluación de nivel; administrador y entrenador entran directo. */
+export function evaluacionCompleta(usuario: Usuario): boolean {
+  return usuario.rol !== 'JUGADOR' || usuario.nivelInicial != null;
+}
