@@ -6,6 +6,7 @@ import { IonContent, IonIcon, IonSpinner } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { atOutline, eyeOffOutline, eyeOutline, lockClosedOutline, mailOutline, personOutline, triangle } from 'ionicons/icons';
 import { finalize } from 'rxjs';
+import { evaluacionCompleta } from '../../../core/models/auth.models';
 import { AuthService } from '../../../core/services/auth';
 import { mensajeDeError } from '../../../core/utils/http-error';
 
@@ -105,7 +106,7 @@ export class RegisterPage {
       .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
         next: r => this.router.navigateByUrl(
-          r.usuario.nivelInicial ? '/tabs' : '/evaluacion',
+          evaluacionCompleta(r.usuario) ? '/tabs' : '/evaluacion',
           { replaceUrl: true }
         ),
         error: (e: HttpErrorResponse) => this.errorServidor.set(mensajeDeError(e)),
