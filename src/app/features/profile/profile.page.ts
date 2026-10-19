@@ -51,25 +51,16 @@ export class ProfilePage {
   }
   async confirmarEliminacion(): Promise<void> {
     const alerta = await this.alertas.create({
-      header: 'Eliminar cuenta',
-      message: 'Esta acción es permanente. Se borrarán tu perfil, tu evaluación y todo tu progreso. Escribe tu contraseña para confirmar.',
-      inputs: [
-        {
-          name: 'contrasena',
-          type: 'password',
-          placeholder: 'Contraseña',
-          attributes: { autocomplete: 'current-password' },
-        },
-      ],
+      header: 'Desactivar cuenta',
+      message: 'Tu cuenta quedará inactiva y no podrás iniciar sesión. Soporte puede reactivarla.',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
-          text: 'Eliminar',
+          text: 'Desactivar',
           role: 'destructive',
           cssClass: 'alerta-boton-peligro',
-          handler: (datos: { contrasena: string }) => {
-            if (!datos.contrasena) return false; // sin contraseña, el diálogo no se cierra
-            this.eliminar(datos.contrasena);
+          handler: () => {
+            this.eliminar();
             return true;
           },
         },
@@ -78,17 +69,17 @@ export class ProfilePage {
     await alerta.present();
   }
 
-  private async eliminar(contrasena: string): Promise<void> {
-    const indicador = await this.cargando.create({ message: 'Eliminando cuenta…' });
+  private async eliminar(): Promise<void> {
+    const indicador = await this.cargando.create({ message: 'Desactivando cuenta…' });
     await indicador.present();
 
-    this.usuarios.eliminarCuenta(contrasena).subscribe({
+    this.usuarios.eliminarCuenta().subscribe({
       next: async () => {
         await indicador.dismiss();
         await this.auth.cerrarSesion();
         this.nav.navigateRoot('/login');
         const aviso = await this.toast.create({
-          message: 'Tu cuenta fue eliminada',
+          message: 'Tu cuenta quedó inactiva',
           duration: 3000,
           position: 'top',
         });

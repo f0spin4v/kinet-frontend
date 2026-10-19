@@ -9,16 +9,20 @@ import { finalize } from 'rxjs';
 import { AuthService } from '../../../core/services/auth';
 import { mensajeDeError } from '../../../core/utils/http-error';
 
-type Campo = 'nombre' | 'nickname' | 'correo' | 'contrasena' | 'aceptaDatos';
+type Campo = 'nombres' | 'apellidos' | 'nickname' | 'correo' | 'contrasena' | 'aceptaDatos';
 
 const LONGITUD_CONTRASENA = 'La contraseña debe tener entre 8 y 72 caracteres.';
 const LONGITUD_NICKNAME = 'El nickname debe tener entre 3 y 30 caracteres.';
 
 /** Mismos textos que las validaciones de RegistroRequest en el backend. */
 const MENSAJES: Record<Campo, Record<string, string>> = {
-  nombre: {
-    required: 'Escribe tu nombre.',
-    maxlength: 'El nombre no puede tener más de 100 caracteres.',
+  nombres: {
+    required: 'Escribe tus nombres.',
+    maxlength: 'Los nombres no pueden tener más de 80 caracteres.',
+  },
+  apellidos: {
+    required: 'Escribe tus apellidos.',
+    maxlength: 'Los apellidos no pueden tener más de 80 caracteres.',
   },
   nickname: {
     required: 'Elige un nickname.',
@@ -29,7 +33,7 @@ const MENSAJES: Record<Campo, Record<string, string>> = {
   correo: {
     required: 'Escribe tu correo.',
     email: 'El correo no tiene un formato válido.',
-    maxlength: 'El correo no puede tener más de 150 caracteres.',
+    maxlength: 'El correo no puede tener más de 120 caracteres.',
   },
   contrasena: {
     required: 'Escribe una contraseña.',
@@ -54,14 +58,15 @@ export class RegisterPage {
   private router = inject(Router);
 
   form = this.fb.nonNullable.group({
-    nombre: ['', [Validators.required, Validators.maxLength(100)]],
+    nombres: ['', [Validators.required, Validators.maxLength(80)]],
+    apellidos: ['', [Validators.required, Validators.maxLength(80)]],
     nickname: ['', [
       Validators.required,
       Validators.minLength(3),
       Validators.maxLength(30),
       Validators.pattern(/^[A-Za-z0-9_]+$/),
     ]],
-    correo: ['', [Validators.required, Validators.email, Validators.maxLength(150)]],
+    correo: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
     contrasena: ['', [
       Validators.required,
       Validators.minLength(8),

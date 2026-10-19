@@ -10,12 +10,23 @@
 <ion-content>
   <form [formGroup]="form" (ngSubmit)="guardar()" novalidate class="editar">
     <div class="field">
-      <label class="field__label" for="nombre">Nombre</label>
-      <div class="field__box" [class.field__box--error]="mensaje('nombre')">
+      <label class="field__label" for="nombres">Nombres</label>
+      <div class="field__box" [class.field__box--error]="mensaje('nombres')">
         <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
-        <input id="nombre" type="text" formControlName="nombre" autocomplete="name" />
+        <input id="nombres" type="text" formControlName="nombres" autocomplete="given-name" />
       </div>
-      @if (mensaje('nombre'); as msg) {
+      @if (mensaje('nombres'); as msg) {
+        <span class="field__error">{{ msg }}</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="apellidos">Apellidos</label>
+      <div class="field__box" [class.field__box--error]="mensaje('apellidos')">
+        <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+        <input id="apellidos" type="text" formControlName="apellidos" autocomplete="family-name" />
+      </div>
+      @if (mensaje('apellidos'); as msg) {
         <span class="field__error">{{ msg }}</span>
       }
     </div>
@@ -42,29 +53,6 @@
         <span class="field__error">{{ msg }}</span>
       } @else {
         <span class="field__hint">Opcional</span>
-      }
-    </div>
-
-    <div class="field">
-      <label class="field__label" for="ciudad">Ciudad</label>
-      <div class="field__box" [class.field__box--error]="mensaje('ciudad')">
-        <ion-icon name="location-outline" aria-hidden="true"></ion-icon>
-        <input id="ciudad" type="text" formControlName="ciudad"
-               autocomplete="address-level2" placeholder="Opcional" />
-      </div>
-      @if (mensaje('ciudad'); as msg) {
-        <span class="field__error">{{ msg }}</span>
-      }
-    </div>
-
-    <div class="field">
-      <label class="field__label" for="deporteFavorito">Deporte favorito</label>
-      <div class="field__box" [class.field__box--error]="mensaje('deporteFavorito')">
-        <ion-icon name="football-outline" aria-hidden="true"></ion-icon>
-        <input id="deporteFavorito" type="text" formControlName="deporteFavorito" placeholder="Opcional" />
-      </div>
-      @if (mensaje('deporteFavorito'); as msg) {
-        <span class="field__error">{{ msg }}</span>
       }
     </div>
 

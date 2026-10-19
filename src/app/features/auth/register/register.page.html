@@ -13,13 +13,25 @@
 
     <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="auth__form">
       <div class="field">
-        <label class="field__label" for="nombre">Nombre</label>
-        <div class="field__box" [class.field__box--error]="mensaje('nombre')">
+        <label class="field__label" for="nombres">Nombres</label>
+        <div class="field__box" [class.field__box--error]="mensaje('nombres')">
           <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
-          <input id="nombre" type="text" formControlName="nombre"
-                 autocomplete="name" placeholder="Tu nombre completo" />
+          <input id="nombres" type="text" formControlName="nombres"
+                 autocomplete="given-name" placeholder="Tus nombres" />
         </div>
-        @if (mensaje('nombre'); as msg) {
+        @if (mensaje('nombres'); as msg) {
+          <span class="field__error">{{ msg }}</span>
+        }
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="apellidos">Apellidos</label>
+        <div class="field__box" [class.field__box--error]="mensaje('apellidos')">
+          <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+          <input id="apellidos" type="text" formControlName="apellidos"
+                 autocomplete="family-name" placeholder="Tus apellidos" />
+        </div>
+        @if (mensaje('apellidos'); as msg) {
           <span class="field__error">{{ msg }}</span>
         }
       </div>
