@@ -32,7 +32,8 @@ test.describe('Evaluación de nivel', () => {
     await opcion(page, 'Principiante 3').click();
 
     await expect(page.getByText('Tu nivel inicial')).toBeVisible();
-    await expect(page.getByText('INTERMEDIO', { exact: true })).toBeVisible();
+    await expect(page.locator('.resultado__nivel')).toHaveText('Intermedio');
+    await expect(page.locator('.resultado__puntaje')).toHaveCount(2);
     const envio = peticiones.find(p => p.metodo === 'POST' && p.ruta === '/evaluacion');
     expect(envio?.cuerpo).toEqual({ idsOpciones: [12, 23, 31] });
 

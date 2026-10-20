@@ -65,8 +65,8 @@ test.describe('Inicio de sesión', () => {
     await expect(page.getByText('El correo no tiene un formato válido.')).toBeVisible();
   });
 
-  test('con credenciales incorrectas muestra el error y sigue en el login', async ({ page }) => {
-    await simularApi(page, { 'POST /auth/login': fallo(401, 'Credenciales inválidas') });
+  test('con credenciales incorrectas muestra el error del servidor y sigue en el login', async ({ page }) => {
+    await simularApi(page, { 'POST /auth/login': fallo(401, 'Correo o contraseña incorrectos.') });
 
     await page.goto('/login');
     await correo(page).fill('ana@kinet.com');
