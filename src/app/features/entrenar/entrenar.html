@@ -1,0 +1,166 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar class="toolbar-kinet"><app-encabezado></app-encabezado></ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="pagina">
+    <div class="titulo-pagina">
+      <app-refrescar (refrescar)="cargar()" />
+      <div>
+        <p class="eyebrow"><span class="punto"></span>Cronómetro</p>
+        <h1>Entrenar</h1>
+        <p class="titulo-pagina__lead">El tiempo lo cuenta el servidor, así que no se pierde si cierras la app.</p>
+      </div>
+    </div>
+
+    @if (error()) {
+      <p class="alert-error" role="alert">{{ error() }}</p>
+    }
+
+    @if (resultado(); as r) {
+      <section class="tarjeta tarjeta--resalte resultado" aria-live="polite">
+        <div class="tarjeta__cabecera">
+          <p class="titulo-tarjeta">{{ r.entrenamiento.estado === 'VALIDADO' ? '¡Sesión registrada!' : 'Sesión enviada' }}</p>
+          <span class="chip" [class]="claseEstado(r.entrenamiento.estado)">{{ etiqueta(r.entrenamiento.estado) }}</span>
+        </div>
+        <div class="rejilla rejilla--metricas">
+          <div class="metrica-chica"><p class="etiqueta">XP ganado</p><p class="valor">+{{ r.xpGanado }}</p></div>
+          <div class="metrica-chica"><p class="etiqueta">XP total</p><p class="valor">{{ r.xpTotal }}</p></div>
+          <div class="metrica-chica"><p class="etiqueta">Nivel</p><p class="valor">{{ r.nivel }}</p></div>
+          <div class="metrica-chica"><p class="etiqueta">Racha</p><p class="valor">{{ r.rachaActual }}<small>días</small></p></div>
+        </div>
+        @if (r.subioNivel) {
+          <p class="aviso-ok">¡Subiste al nivel {{ r.nivel }}!</p>
+        }
+        @if (r.entrenamiento.estado === 'PENDIENTE') {
+          <p class="texto-suave">Una sesión larga queda pendiente hasta que un entrenador la revise. Sube el enlace de tu actividad como evidencia.</p>
+        }
+        @for (c of r.retosCompletados; track c) {
+          <p class="aviso-ok">Reto completado: {{ c }}</p>
+        }
+        @for (l of r.logrosObtenidos; track l) {
+          <p class="aviso-ok">Logro desbloqueado: {{ l }}</p>
+        }
+        <div class="acciones">
+          <a [routerLink]="['/tabs/entrenar', r.entrenamiento.id]" class="btn-primary">Ver detalle y evidencia</a>
+          <button type="button" class="btn-secundario" (click)="cerrarResultado()">Cerrar</button>
+        </div>
+      </section>
+    }
+
+    @if (cargando()) {
+      <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else if (enCurso(); as e) {
+      <section class="tarjeta tarjeta--resalte cronometro">
+        <p class="eyebrow"><span class="punto"></span>En curso · {{ e.actividad }}</p>
+        <p class="cronometro__tiempo" role="timer" [attr.aria-label]="minutos() + ' minutos'">{{ reloj$() }}</p>
+        <app-barra-progreso [valor]="minutos()" [meta]="maximo" [completado]="minutos() >= maximo" />
+        <p class="texto-tenue">Máximo {{ maximo }} min por sesión. Desde {{ limiteSinEnlace + 1 }} min necesitas un enlace como evidencia.</p>
+        @if (requiereEnlace()) {
+          <p class="aviso-ok aviso-largo">Esta sesión es larga: quedará pendiente y deberás subir el enlace de tu app deportiva.</p>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="finalizar()" novalidate class="campos">
+          <div class="field">
+            <label class="field__label">Intensidad</label>
+            <div class="pestanas" role="radiogroup" aria-label="Intensidad">
+              @for (i of intensidades; track i.valor) {
+                <button type="button" role="radio" class="pestana"
+                        [class.pestana--activa]="form.controls.intensidad.value === i.valor"
+                        [attr.aria-checked]="form.controls.intensidad.value === i.valor"
+                        (click)="form.controls.intensidad.setValue(i.valor)">{{ i.etiqueta }}</button>
+              }
+            </div>
+          </div>
+
+          @if (campos().distancia || campos().calorias) {
+            <div class="campos" [class.campos--2]="campos().distancia && campos().calorias">
+              @if (campos().distancia; as d) {
+                <div class="field">
+                  <label class="field__label" for="dist">{{ d.etiqueta }} · opcional</label>
+                  <div class="field__box">
+                    <input id="dist" type="number" min="0" [step]="d.unidad === 'm' ? 50 : 0.1" inputmode="decimal" formControlName="distanciaKm" />
+                  </div>
+                </div>
+              }
+              @if (campos().calorias) {
+                <div class="field">
+                  <label class="field__label" for="cal">Calorías (kcal) · opcional</label>
+                  <div class="field__box"><input id="cal" type="number" min="0" step="1" inputmode="numeric" formControlName="caloriasKcal" /></div>
+                </div>
+              }
+            </div>
+          }
+
+          @if (campos().series) {
+            <div>
+              <div class="campos campos--3">
+                <div class="field">
+                  <label class="field__label" for="series">Series · opcional</label>
+                  <div class="field__box"><input id="series" type="number" min="1" max="100" inputmode="numeric" formControlName="series" /></div>
+                </div>
+                <div class="field">
+                  <label class="field__label" for="reps">Reps por serie · opcional</label>
+                  <div class="field__box"><input id="reps" type="number" min="1" max="1000" inputmode="numeric" formControlName="repeticiones" /></div>
+                </div>
+                @if (campos().pesoCorporal) {
+                  <div class="field">
+                    <label class="field__label" for="peso">Peso (kg) · opcional</label>
+                    <div class="field__box"><input id="peso" type="number" min="0" step="0.5" inputmode="decimal" formControlName="pesoKg" /></div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <div class="field">
+            <label class="field__label" for="notas">Notas (opcional)</label>
+            <div class="field__box field__box--area"><textarea id="notas" formControlName="notas" maxlength="300" rows="2" [placeholder]="campos().notas"></textarea></div>
+          </div>
+
+          <div class="acciones">
+            <button type="submit" class="btn-primary" [disabled]="trabajando()">
+              @if (trabajando()) { <ion-spinner name="crescent"></ion-spinner> } @else { <ion-icon name="stop-outline"></ion-icon>&nbsp;Finalizar }
+            </button>
+            <button type="button" class="btn-peligro" [disabled]="trabajando()" (click)="confirmarCancelar()">Cancelar</button>
+          </div>
+        </form>
+      </section>
+    } @else {
+      <h2 class="titulo-seccion">Elige una actividad para empezar</h2>
+      <div class="rejilla rejilla--3">
+        @for (a of activas(); track a.id) {
+          <button type="button" class="tarjeta actividad" [disabled]="trabajando()" (click)="iniciar(a)">
+            <ion-icon [name]="icono(a.nombre)" aria-hidden="true"></ion-icon>
+            <span class="titulo-tarjeta">{{ etiqueta(a.nombre) }}</span>
+            @if (minimoDe(a); as m) {
+              <span class="texto-tenue">Cuenta desde {{ m }} min</span>
+            }
+            <span class="actividad__ir"><ion-icon name="play-outline"></ion-icon> Iniciar</span>
+          </button>
+        }
+      </div>
+    }
+
+    <h2 class="titulo-seccion">Historial</h2>
+    <div class="tarjeta">
+      <ul class="lista">
+        @for (h of historial.items(); track h.id) {
+          <li>
+            <a [routerLink]="['/tabs/entrenar', h.id]" class="item item--enlace">
+              <div class="item__texto">
+                <p class="item__titulo">{{ etiqueta(h.actividad) }} · {{ duracion(h.duracionMin) }}</p>
+                <p class="item__detalle">{{ fechaCorta(h.fechaHoraInicio) }}@if (h.intensidad) { · {{ etiqueta(h.intensidad) }} }</p>
+              </div>
+              <div class="item__lado">
+                <span class="chip" [class]="claseEstado(h.estado)">{{ etiqueta(h.estado) }}</span>
+                <span class="texto-tenue">+{{ h.xpOtorgado }} XP</span>
+              </div>
+            </a>
+          </li>
+        }
+      </ul>
+      <app-pie-lista [lista]="historial" vacio="Aún no has entrenado. ¡Empieza tu primera sesión!" />
+    </div>
+  </div>
+</ion-content>

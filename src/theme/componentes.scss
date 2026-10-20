@@ -1,0 +1,696 @@
+// ===== Componentes compartidos de KINET =====
+// Móvil primero; las media queries amplían el contenido para la web (tablet >= 768px, escritorio >= 992px).
+
+$tablet: 768px;
+$escritorio: 992px;
+$ancho: 1200px;
+
+// ----- Contenedor de página -----
+.pagina {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 16px 20px 40px;
+
+  @media (min-width: $tablet) {
+    max-width: 860px;
+    padding: 24px 32px 48px;
+  }
+
+  @media (min-width: $escritorio) {
+    max-width: $ancho;
+    padding: 32px 40px 56px;
+  }
+
+  // formularios y pantallas de un solo bloque: no se estiran en la web
+  &--estrecha {
+    max-width: 560px;
+
+    @media (min-width: $tablet) {
+      max-width: 620px;
+    }
+
+    @media (min-width: $escritorio) {
+      max-width: 680px;
+    }
+  }
+}
+
+.titulo-pagina {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+
+  @media (min-width: $escritorio) {
+    margin-bottom: 32px;
+
+    h1 {
+      font-size: 32px !important;
+      line-height: 38px !important;
+    }
+  }
+}
+
+// ----- Rejillas -----
+.rejilla {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+  margin-bottom: 24px;
+
+  &--2 {
+    @media (min-width: $tablet) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  &--3 {
+    @media (min-width: $tablet) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (min-width: $escritorio) {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  // tarjetas de métricas: dos por fila en el móvil, cuatro en la web
+  &--metricas {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+
+    @media (min-width: $escritorio) {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+  }
+
+  // contenido principal + columna lateral
+  &--principal-lateral {
+    @media (min-width: $escritorio) {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+      align-items: start;
+    }
+  }
+}
+
+// ----- Tarjetas -----
+.tarjeta {
+  min-width: 0;
+  padding: 16px;
+  background: var(--kinet-surface);
+  border: 1px solid var(--kinet-surface-high);
+  border-radius: var(--kinet-radius-card);
+
+  &--resalte {
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.22), rgba(0, 210, 255, 0.08)), var(--kinet-surface);
+    border-color: rgba(0, 102, 255, 0.45);
+  }
+
+  &--aviso {
+    border-color: rgba(255, 176, 32, 0.6);
+    background: rgba(255, 176, 32, 0.08);
+  }
+
+  @media (min-width: $escritorio) {
+    padding: 20px;
+  }
+}
+
+.tarjeta__cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.titulo-seccion {
+  margin: 0 0 12px;
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--kinet-text-secondary);
+}
+
+.titulo-tarjeta {
+  margin: 0;
+  font-family: var(--kinet-font-display);
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 24px;
+  color: var(--kinet-text);
+}
+
+.texto-suave {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--kinet-text-secondary);
+}
+
+.texto-tenue {
+  font-size: 12px;
+  color: var(--kinet-text-muted);
+}
+
+.metrica-chica {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+  background: var(--kinet-surface);
+  border: 1px solid var(--kinet-surface-high);
+  border-radius: var(--kinet-radius-card);
+
+  .etiqueta {
+    margin: 0;
+  }
+
+  .valor {
+    margin: 0;
+    font-family: var(--kinet-font-display);
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 28px;
+    color: var(--kinet-text);
+
+    small {
+      margin-left: 4px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--kinet-text-muted);
+    }
+  }
+}
+
+.etiqueta {
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--kinet-text-secondary);
+}
+
+// ----- Listas -----
+.lista {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--kinet-surface-high);
+  color: inherit;
+  text-decoration: none;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  &--enlace {
+    cursor: pointer;
+
+    &:hover .item__titulo {
+      color: var(--kinet-accent);
+    }
+  }
+}
+
+.item__texto {
+  min-width: 0;
+  flex: 1;
+}
+
+.item__titulo {
+  margin: 0;
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 20px;
+  color: var(--kinet-text);
+  overflow-wrap: anywhere;
+}
+
+.item__detalle {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--kinet-text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.item__lado {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--kinet-surface-high);
+  font-size: 14px;
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  dt {
+    color: var(--kinet-text-secondary);
+  }
+
+  dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+}
+
+dl.kv-lista {
+  margin: 0;
+}
+
+// ----- Etiquetas de estado -----
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: var(--kinet-radius-pill);
+  background: var(--kinet-surface-high);
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--kinet-text-secondary);
+
+  &--ok {
+    background: rgba(46, 204, 113, 0.16);
+    color: #1fa35c;
+  }
+
+  &--aviso {
+    background: rgba(255, 176, 32, 0.18);
+    color: #b87400;
+  }
+
+  &--error {
+    background: rgba(var(--ion-color-danger-rgb), 0.15);
+    color: var(--ion-color-danger);
+  }
+
+  &--info {
+    background: rgba(0, 102, 255, 0.15);
+    color: var(--kinet-primary-soft);
+  }
+}
+
+// ----- Botones -----
+.btn-secundario,
+.btn-peligro,
+.btn-chico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: var(--kinet-radius-card);
+  border: 1px solid var(--kinet-surface-highest);
+  background: var(--kinet-surface);
+  color: var(--kinet-text);
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: var(--kinet-accent);
+  }
+}
+
+.btn-peligro {
+  border-color: rgba(var(--ion-color-danger-rgb), 0.5);
+  color: var(--ion-color-danger);
+}
+
+.btn-chico {
+  min-height: 36px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+a.btn-primary {
+  text-decoration: none;
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+
+  > * {
+    flex: 1 1 140px;
+  }
+
+  @media (min-width: $tablet) {
+    > * {
+      flex: 0 1 auto;
+    }
+  }
+}
+
+.acciones--completo > * {
+  flex: 1 1 100%;
+}
+
+// ----- Controles de formulario extra -----
+.field__box select,
+.field__box textarea {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--kinet-text);
+  font-family: var(--kinet-font-body);
+  font-size: 16px;
+}
+
+.field__box select option {
+  background: var(--kinet-surface);
+  color: var(--kinet-text);
+}
+
+.field__box--area {
+  height: auto;
+  align-items: flex-start;
+  padding: 12px 16px;
+
+  textarea {
+    min-height: 84px;
+    resize: vertical;
+  }
+}
+
+.campos {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+
+  @media (min-width: $tablet) {
+    &--2 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+}
+
+// ----- Pestañas en píldora (segmentos) -----
+.pestanas {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding: 4px;
+  overflow-x: auto;
+  background: var(--kinet-surface);
+  border: 1px solid var(--kinet-surface-high);
+  border-radius: var(--kinet-radius-card);
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (min-width: $tablet) {
+    display: inline-flex;
+  }
+}
+
+.pestana {
+  flex: 1 0 auto;
+  min-height: 40px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--kinet-text-secondary);
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.4px;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &--activa {
+    background: var(--kinet-primary);
+    color: #ffffff;
+  }
+}
+
+// ----- Estados vacíos y de carga -----
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--kinet-text-secondary);
+
+  ion-icon {
+    font-size: 36px;
+    color: var(--kinet-text-muted);
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.cargando-centro {
+  display: flex;
+  justify-content: center;
+  padding: 32px;
+
+  ion-spinner {
+    --color: var(--kinet-accent);
+  }
+}
+
+.aviso-ok {
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: var(--kinet-radius-card);
+  background: rgba(46, 204, 113, 0.14);
+  color: #1fa35c;
+  font-size: 14px;
+}
+
+// ----- Tablas (administración, solo se ven como tabla en pantallas anchas) -----
+.tabla-scroll {
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+
+  th {
+    padding: 10px 12px;
+    text-align: left;
+    font-family: var(--kinet-font-display);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--kinet-text-secondary);
+    border-bottom: 1px solid var(--kinet-surface-high);
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 12px;
+    border-bottom: 1px solid var(--kinet-surface-high);
+    vertical-align: middle;
+  }
+
+  tr:last-child td {
+    border-bottom: 0;
+  }
+}
+
+// ----- Navegación principal: barra inferior en el móvil, menú lateral en la web -----
+ion-tabs.shell {
+  @media (min-width: $escritorio) {
+    flex-direction: row-reverse;
+  }
+}
+
+ion-tabs.shell ion-tab-bar {
+  --background: var(--kinet-bg);
+  --border: 0;
+  height: 64px;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.25);
+
+  .marca-lateral {
+    display: none;
+  }
+
+  @media (min-width: $escritorio) {
+    flex: 0 0 248px;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 4px;
+    width: 248px;
+    height: 100%;
+    padding: 24px 14px;
+    border-right: 1px solid var(--kinet-surface-high);
+    box-shadow: none;
+
+    .marca-lateral {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 12px 28px;
+      font-family: var(--kinet-font-display);
+      font-weight: 600;
+      font-size: 20px;
+      letter-spacing: 1px;
+      color: var(--kinet-text);
+
+      ion-icon {
+        font-size: 24px;
+        color: var(--kinet-primary);
+      }
+    }
+  }
+}
+
+ion-tabs.shell ion-tab-button {
+  --color: var(--kinet-text-muted);
+  --color-selected: var(--kinet-accent);
+
+  ion-icon {
+    font-size: 20px;
+  }
+
+  ion-label {
+    margin-top: 4px;
+    font-family: var(--kinet-font-display);
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+  }
+
+  @media (min-width: $escritorio) {
+    flex: none;
+    max-width: none;
+    height: 48px;
+    border-radius: 10px;
+
+    &::part(native) {
+      flex-direction: row;
+      justify-content: flex-start;
+      gap: 14px;
+      padding: 0 16px;
+    }
+
+    ion-label {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: 0.6px;
+    }
+
+    &.tab-selected {
+      background: var(--kinet-surface);
+    }
+  }
+}
+
+// En la web los encabezados de página no repiten la marca (ya está en el menú lateral)
+@media (min-width: $escritorio) {
+  ion-tabs.shell ion-header app-encabezado .marca {
+    visibility: hidden;
+  }
+}
+
+// ----- Piezas sueltas -----
+.evidencia-img {
+  display: block;
+  max-width: 100%;
+  max-height: 360px;
+  border-radius: var(--kinet-radius-card);
+  object-fit: contain;
+}
+
+.sep {
+  margin-bottom: 16px;
+}
+
+// Enlaces que se ven como tarjeta o fila (sin subrayado)
+a.tarjeta,
+a.item {
+  color: inherit;
+  text-decoration: none;
+}
+
+// Los botones .btn-primary dentro de acciones no ocupan todo el ancho en pantallas anchas
+.acciones .btn-primary,
+.acciones .btn-secundario,
+.acciones .btn-peligro {
+  width: auto;
+}
+
+// Selectores y tablas anchas: solo se desplazan dentro de su caja, nunca la página
+.tabla-scroll {
+  max-width: 100%;
+}
+
+// Móvil estrecho: las pestañas y la cabecera de página se acomodan
+@media (max-width: 380px) {
+  .titulo-pagina h1 {
+    font-size: 22px;
+    line-height: 28px;
+  }
+
+  .rejilla--metricas .valor {
+    font-size: 20px;
+  }
+}
+
+// tres columnas en pantallas anchas (series, repeticiones y peso)
+.campos--3 {
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}

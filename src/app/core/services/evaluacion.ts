@@ -1,10 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import {
-  EvaluacionResponse, OpcionId, Pregunta, PreguntaDto, ResultadoEvaluacionDto,
-} from '../models/evaluacion.models';
+import { EvaluacionResponse, OpcionId, Pregunta } from '../models/evaluacion.models';
 import { AuthService } from './auth';
 
 @Injectable({ providedIn: 'root' })
@@ -14,17 +12,11 @@ export class EvaluacionService {
   private api = `${environment.apiUrl}/evaluacion`;
 
   preguntas(): Observable<Pregunta[]> {
-    return this.http.get<PreguntaDto[]>(`${this.api}/preguntas`).pipe(
-      map(lista => [...lista]
-        .sort((a, b) => a.orden - b.orden)
-        .map(p => ({ numero: p.orden, texto: p.enunciado, opciones: p.opciones })))
-    );
+    return this.http.get<Pregunta[]>(`${this.api}/preguntas`);
   }
 
-  /** Una opción por pregunta, en el mismo orden en que se mostraron. */
-  registrar(idsOpciones: OpcionId[]): Observable<EvaluacionResponse> {
-    return this.http.post<ResultadoEvaluacionDto>(this.api, { idsOpciones }).pipe(
-      map(r => ({ nivelInicial: r.nivelHabilidad, fecha: r.fecha })),
+  registrar(respuestas: OpcionId[]): Observable<EvaluacionResponse> {
+    return this.http.post<EvaluacionResponse>(this.api, { respuestas }).pipe(
       tap(r => {
         const usuario = this.auth.usuario();
         if (usuario) {

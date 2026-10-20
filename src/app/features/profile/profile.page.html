@@ -1,19 +1,25 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar class="toolbar-kinet"><app-encabezado></app-encabezado></ion-toolbar>
+</ion-header>
+
 <ion-content [fullscreen]="true">
-  <div class="perfil">
-    @if (usuario(); as u) {
+  @if (usuario(); as u) {
+    <div class="pagina pagina--estrecha">
       <section class="hero">
-        <div class="hero__avatar">{{ iniciales(u.nombre) }}</div>
-        <h1>{{ u.nombre }}</h1>
-        @if (u.nickname) {
-          <p class="hero__nick">&#64;{{ u.nickname }}</p>
+        <div class="hero__avatar">{{ iniciales() }}</div>
+        <h1>{{ u.nombres }} {{ u.apellidos }}</h1>
+        @if (u.gamertag) {
+          <p class="hero__nick">&#64;{{ u.gamertag }}</p>
         }
-        @if (u.nivelInicial) {
-          <span class="hero__nivel">{{ u.nivelInicial }}</span>
-        }
+        <span class="hero__nivel">{{ esJugador() ? etiqueta(u.nivelHabilidad) : etiqueta(u.rol) }}</span>
       </section>
 
+      <div class="acciones bloque">
+        <a [routerLink]="rutaEditar()" class="btn-primary">Editar perfil</a>
+        <a [routerLink]="rutaContrasena()" class="btn-secundario">Cambiar contraseña</a>
+      </div>
+
       <section class="bloque">
-        <a routerLink="/tabs/perfil/editar" class="btn-primary btn-editar">Editar perfil</a>
         <h2 class="bloque__titulo">Apariencia</h2>
         <div class="segmento" role="radiogroup" aria-label="Tema de la aplicación">
           @for (op of opcionesTema; track op.valor) {
@@ -30,20 +36,41 @@
 
       <section class="bloque">
         <h2 class="bloque__titulo">Cuenta</h2>
-        <div class="fila">
-          <span class="fila__etiqueta">Correo</span>
-          <span class="fila__valor">{{ u.correo }}</span>
-        </div>
+        <dl class="tarjeta kv-lista">
+          <div class="kv"><dt>Correo</dt><dd>{{ u.correo }}</dd></div>
+          <div class="kv"><dt>Rol</dt><dd>{{ etiqueta(u.rol) }}</dd></div>
+          <div class="kv"><dt>Miembro desde</dt><dd>{{ fechaLarga(u.fechaRegistro) }}</dd></div>
+          @if (u.fechaNacimiento) {
+            <div class="kv"><dt>Nacimiento</dt><dd>{{ fechaLarga(u.fechaNacimiento) }}</dd></div>
+          }
+        </dl>
       </section>
+
+      @if (esJugador() && evaluacion(); as ev) {
+        <section class="bloque">
+          <h2 class="bloque__titulo">Evaluación de nivel</h2>
+          <div class="tarjeta">
+            <dl class="kv-lista">
+              <div class="kv"><dt>Nivel</dt><dd>{{ etiqueta(ev.nivelHabilidad) }}</dd></div>
+              <div class="kv"><dt>Realizada</dt><dd>{{ fechaLarga(ev.fecha) }}</dd></div>
+              @if (!puedeRepetir()) {
+                <div class="kv"><dt>Repetir desde</dt><dd>{{ fechaLarga(ev.puedeRepetirDesde) }}</dd></div>
+              }
+            </dl>
+            @if (puedeRepetir()) {
+              <a routerLink="/evaluacion/repetir" class="btn-secundario btn-repetir">Repetir evaluación</a>
+            }
+          </div>
+        </section>
+      }
 
       <button type="button" class="btn-salir" (click)="cerrarSesion()">
         <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
         Cerrar sesión
       </button>
-      <button type="button" class="btn-eliminar" (click)="confirmarEliminacion()">
-        Desactivar cuenta
-      </button>
-
-    }
-  </div>
+      @if (esJugador()) {
+        <button type="button" class="btn-eliminar" (click)="confirmarDesactivacion()">Desactivar cuenta</button>
+      }
+    </div>
+  }
 </ion-content>

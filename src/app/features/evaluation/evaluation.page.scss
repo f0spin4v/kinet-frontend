@@ -388,3 +388,24 @@
     transition: none;
   }
 }
+
+// ----- Web: el cuestionario gana ancho y las opciones se reparten en dos columnas -----
+@media (min-width: 768px) {
+  .eval {
+    max-width: 720px;
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .eval__opciones {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+@media (min-width: 992px) {
+  .eval {
+    max-width: 880px;
+  }
+}

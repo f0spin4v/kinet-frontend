@@ -8,9 +8,14 @@ ion-title {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 448px;
+  max-width: 560px;
   margin: 0 auto;
   padding: 24px 20px 32px;
+
+  @media (min-width: 768px) {
+    max-width: 640px;
+    padding: 40px 32px 48px;
+  }
 }
 
 .btn-primary {

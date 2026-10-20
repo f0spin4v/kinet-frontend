@@ -1,7 +1,7 @@
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
-      <ion-back-button defaultHref="/tabs/perfil" text=""></ion-back-button>
+      <ion-back-button [defaultHref]="rutaVolver" text=""></ion-back-button>
     </ion-buttons>
     <ion-title>Editar perfil</ion-title>
   </ion-toolbar>
@@ -9,36 +9,37 @@
 
 <ion-content>
   <form [formGroup]="form" (ngSubmit)="guardar()" novalidate class="editar">
-    <div class="field">
-      <label class="field__label" for="nombres">Nombres</label>
-      <div class="field__box" [class.field__box--error]="mensaje('nombres')">
-        <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
-        <input id="nombres" type="text" formControlName="nombres" autocomplete="given-name" />
+    <div class="campos campos--2">
+      <div class="field">
+        <label class="field__label" for="nombres">Nombres</label>
+        <div class="field__box" [class.field__box--error]="mensaje('nombres')">
+          <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+          <input id="nombres" type="text" formControlName="nombres" autocomplete="given-name" />
+        </div>
+        @if (mensaje('nombres'); as msg) {
+          <span class="field__error">{{ msg }}</span>
+        }
       </div>
-      @if (mensaje('nombres'); as msg) {
-        <span class="field__error">{{ msg }}</span>
-      }
+
+      <div class="field">
+        <label class="field__label" for="apellidos">Apellidos</label>
+        <div class="field__box" [class.field__box--error]="mensaje('apellidos')">
+          <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
+          <input id="apellidos" type="text" formControlName="apellidos" autocomplete="family-name" />
+        </div>
+        @if (mensaje('apellidos'); as msg) {
+          <span class="field__error">{{ msg }}</span>
+        }
+      </div>
     </div>
 
     <div class="field">
-      <label class="field__label" for="apellidos">Apellidos</label>
-      <div class="field__box" [class.field__box--error]="mensaje('apellidos')">
-        <ion-icon name="person-outline" aria-hidden="true"></ion-icon>
-        <input id="apellidos" type="text" formControlName="apellidos" autocomplete="family-name" />
-      </div>
-      @if (mensaje('apellidos'); as msg) {
-        <span class="field__error">{{ msg }}</span>
-      }
-    </div>
-
-    <div class="field">
-      <label class="field__label" for="nickname">Nickname</label>
-      <div class="field__box" [class.field__box--error]="mensaje('nickname')">
+      <label class="field__label" for="gamertag">Gamertag</label>
+      <div class="field__box" [class.field__box--error]="mensaje('gamertag')">
         <ion-icon name="at-outline" aria-hidden="true"></ion-icon>
-        <input id="nickname" type="text" formControlName="nickname"
-               autocapitalize="off" spellcheck="false" />
+        <input id="gamertag" type="text" formControlName="gamertag" autocapitalize="off" spellcheck="false" />
       </div>
-      @if (mensaje('nickname'); as msg) {
+      @if (mensaje('gamertag'); as msg) {
         <span class="field__error">{{ msg }}</span>
       }
     </div>
@@ -53,6 +54,17 @@
         <span class="field__error">{{ msg }}</span>
       } @else {
         <span class="field__hint">Opcional</span>
+      }
+    </div>
+
+    <div class="field">
+      <label class="field__label" for="avatarUrl">Imagen de perfil (enlace)</label>
+      <div class="field__box" [class.field__box--error]="mensaje('avatarUrl')">
+        <ion-icon name="image-outline" aria-hidden="true"></ion-icon>
+        <input id="avatarUrl" type="url" formControlName="avatarUrl" placeholder="https://… (opcional)" />
+      </div>
+      @if (mensaje('avatarUrl'); as msg) {
+        <span class="field__error">{{ msg }}</span>
       }
     </div>
 

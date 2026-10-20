@@ -1,0 +1,132 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar class="toolbar-kinet"><app-encabezado></app-encabezado></ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="pagina">
+    <div class="titulo-pagina">
+      <app-refrescar (refrescar)="ionViewWillEnter()" />
+      <div>
+        <p class="eyebrow"><span class="punto"></span>Equipo</p>
+        <h1>Moderación</h1>
+        <p class="titulo-pagina__lead">Revisa sesiones largas y evidencias, cierra clanes y descalifica jugadores.</p>
+      </div>
+    </div>
+
+    <div class="pestanas" role="tablist">
+      <button type="button" role="tab" class="pestana" [class.pestana--activa]="pestana() === 'pendientes'" (click)="cambiar('pendientes')">
+        Sesiones @if (pendientes.total() > 0) { ({{ pendientes.total() }}) }
+      </button>
+      <button type="button" role="tab" class="pestana" [class.pestana--activa]="pestana() === 'evidencias'" (click)="cambiar('evidencias')">Evidencias</button>
+      <button type="button" role="tab" class="pestana" [class.pestana--activa]="pestana() === 'clanes'" (click)="cambiar('clanes')">Clanes</button>
+      <button type="button" role="tab" class="pestana" [class.pestana--activa]="pestana() === 'jugadores'" (click)="cambiar('jugadores')">Descalificar</button>
+    </div>
+
+    @if (error()) { <p class="alert-error" role="alert">{{ error() }}</p> }
+    @if (ok()) { <p class="aviso-ok" role="status">{{ ok() }}</p> }
+
+    <!-- ===== sesiones pendientes ===== -->
+    @if (pestana() === 'pendientes') {
+      <div class="rejilla rejilla--2">
+        @for (p of pendientes.items(); track p.entrenamiento.id) {
+          <article class="tarjeta">
+            <div class="tarjeta__cabecera">
+              <h2 class="titulo-tarjeta">{{ p.gamertag }}</h2>
+              <span class="chip chip--aviso">Pendiente</span>
+            </div>
+            <dl class="kv-lista">
+              <div class="kv"><dt>Actividad</dt><dd>{{ etiqueta(p.entrenamiento.actividad) }}</dd></div>
+              <div class="kv"><dt>Duración</dt><dd>{{ duracion(p.entrenamiento.duracionMin) }}</dd></div>
+              <div class="kv"><dt>Inicio</dt><dd>{{ fechaCorta(p.entrenamiento.fechaHoraInicio) }}</dd></div>
+              <div class="kv"><dt>Intensidad</dt><dd>{{ etiqueta(p.entrenamiento.intensidad) }}</dd></div>
+              <div class="kv"><dt>Evidencia</dt><dd>{{ p.entrenamiento.evidencia ? etiqueta(p.entrenamiento.evidencia) : 'Sin enlace' }}</dd></div>
+              @if (p.entrenamiento.notas) { <div class="kv"><dt>Notas</dt><dd>{{ p.entrenamiento.notas }}</dd></div> }
+            </dl>
+            <div class="acciones">
+              <button type="button" class="btn-primary" [disabled]="trabajando()" (click)="aprobar(p)"><ion-icon name="checkmark-outline"></ion-icon>&nbsp;Aprobar</button>
+              <button type="button" class="btn-peligro" [disabled]="trabajando()" (click)="rechazar(p)"><ion-icon name="close-outline"></ion-icon>&nbsp;Rechazar</button>
+            </div>
+          </article>
+        }
+      </div>
+      <app-pie-lista [lista]="pendientes" vacio="No hay sesiones pendientes de revisión." />
+    }
+
+    <!-- ===== evidencias ===== -->
+    @if (pestana() === 'evidencias') {
+      <div class="pestanas" role="tablist">
+        @for (f of filtros; track f.valor) {
+          <button type="button" class="pestana" [class.pestana--activa]="filtroEvidencia() === f.valor" (click)="filtrar(f.valor)">{{ f.etiqueta }}</button>
+        }
+      </div>
+      <div class="rejilla rejilla--2">
+        @for (ev of evidencias.items(); track ev.id) {
+          <article class="tarjeta">
+            <div class="tarjeta__cabecera">
+              <h2 class="titulo-tarjeta">{{ ev.gamertag }} · {{ etiqueta(ev.actividad) }}</h2>
+              <span class="chip" [class]="claseEstado(ev.estadoRevision)">{{ etiqueta(ev.estadoRevision) }}</span>
+            </div>
+            <p class="texto-tenue">{{ duracion(ev.duracionMin) }} · sesión {{ etiqueta(ev.estadoEntrenamiento) }} · subida {{ fechaCorta(ev.fechaSubida) }}</p>
+            @if (ev.tipo === 'ENLACE') {
+              <p class="texto-suave">Enlace {{ ev.plataforma ? '(' + etiqueta(ev.plataforma) + ')' : '' }}:
+                <a [href]="ev.url" target="_blank" rel="noopener noreferrer">{{ ev.url }}</a></p>
+            } @else {
+              <p class="texto-suave">Imagen {{ ev.nombreArchivo }}</p>
+              @if (imagenes()[ev.id]; as src) {
+                <img [src]="src" alt="Evidencia de {{ ev.gamertag }}" class="evidencia-img" />
+              } @else {
+                <button type="button" class="btn-chico" (click)="verImagen(ev)">Ver imagen</button>
+              }
+            }
+            @if (ev.notaRevision) { <p class="texto-tenue">Nota: {{ ev.notaRevision }}</p> }
+            @if (ev.estadoRevision === 'SIN_REVISAR') {
+              <div class="acciones">
+                <button type="button" class="btn-primary" [disabled]="trabajando()" (click)="aceptarEvidencia(ev)">Aceptar</button>
+                <button type="button" class="btn-peligro" [disabled]="trabajando()" (click)="rechazarEvidencia(ev)">Rechazar</button>
+              </div>
+            }
+          </article>
+        }
+      </div>
+      <app-pie-lista [lista]="evidencias" vacio="No hay evidencias en este estado." />
+    }
+
+    <!-- ===== clanes ===== -->
+    @if (pestana() === 'clanes') {
+      <div class="tarjeta">
+        <ul class="lista">
+          @for (c of clanes.items(); track c.id) {
+            <li class="item">
+              <div class="item__texto">
+                <p class="item__titulo">{{ c.nombre }}</p>
+                <p class="item__detalle">Líder {{ c.lider }} · {{ c.miembros }}/{{ c.capacidadMax }} miembros</p>
+              </div>
+              <button type="button" class="btn-chico btn-peligro" [disabled]="trabajando()" (click)="cerrarClan(c)">Cerrar</button>
+            </li>
+          }
+        </ul>
+        <app-pie-lista [lista]="clanes" vacio="No hay clanes activos." />
+      </div>
+    }
+
+    <!-- ===== descalificar ===== -->
+    @if (pestana() === 'jugadores') {
+      <p class="texto-suave sep">Jugadores del ranking de la temporada activa. Un descalificado pierde su lugar en la temporada.</p>
+      <div class="tarjeta">
+        <ul class="lista">
+          @for (j of ranking(); track j.idUsuario) {
+            <li class="item">
+              <div class="item__texto">
+                <p class="item__titulo">{{ j.posicion }}. {{ j.gamertag }}</p>
+                <p class="item__detalle">{{ j.rango }} · {{ j.puntos }} pts</p>
+              </div>
+              <button type="button" class="btn-chico btn-peligro" [disabled]="trabajando()" (click)="descalificar(j)">Descalificar</button>
+            </li>
+          } @empty {
+            <li class="vacio"><p>No hay jugadores en el ranking de la temporada activa.</p></li>
+          }
+        </ul>
+      </div>
+    }
+  </div>
+</ion-content>

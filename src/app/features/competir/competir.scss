@@ -1,0 +1,39 @@
+.barra-sup {
+  margin-bottom: 20px;
+}
+
+.rango {
+  margin: 16px 0 0;
+
+  .valor {
+    font-size: 18px;
+  }
+}
+
+.tarjeta--resalte .acciones {
+  margin-top: 16px;
+}
+
+.ranking {
+  list-style: none;
+}
+
+.item--yo {
+  background: rgba(0, 102, 255, 0.08);
+  border-radius: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.pestana .chip {
+  margin-left: 6px;
+}
+
+h2.titulo-seccion {
+  margin-top: 8px;
+}
+
+.rejilla + h2.titulo-seccion,
+.tarjeta + h2.titulo-seccion {
+  margin-top: 24px;
+}

@@ -5,8 +5,9 @@ import { IonContent, IonIcon, IonSpinner } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { arrowBack, arrowForward, optionsOutline, pulseOutline, triangle } from 'ionicons/icons';
 import { AuthService } from '../../core/services/auth';
-import { EvaluacionService } from '../../core/services/evaluacion';
-import { EvaluacionResponse, OpcionId, Pregunta } from '../../core/models/evaluacion.models';
+import { JugadorService } from '../../core/services/jugador';
+import { PreguntaEvaluacion, ResultadoEvaluacion } from '../../core/models/api.models';
+import { etiqueta } from '../../core/utils/formato';
 import { mensajeDeError } from '../../core/utils/http-error';
 
 type Estado = 'cargando' | 'respondiendo' | 'enviando' | 'resultado' | 'error';
@@ -18,16 +19,18 @@ type Estado = 'cargando' | 'respondiendo' | 'enviando' | 'resultado' | 'error';
   imports: [IonContent, IonIcon, IonSpinner],
 })
 export class EvaluationPage {
-  private evaluacion = inject(EvaluacionService);
+  private jugador = inject(JugadorService);
   private auth = inject(AuthService);
   private router = inject(Router);
 
+  /** true cuando un jugador ya evaluado repite el cuestionario (/evaluacion/repetir). */
+  repitiendo = this.router.url.includes('/evaluacion/repetir');
   estado = signal<Estado>('cargando');
-  preguntas = signal<Pregunta[]>([]);
+  preguntas = signal<PreguntaEvaluacion[]>([]);
   indice = signal(0);
-  respuestas = signal<OpcionId[]>([]);
-  seleccion = signal<OpcionId | null>(null);
-  resultado = signal<EvaluacionResponse | null>(null);
+  respuestas = signal<number[]>([]);
+  seleccion = signal<number | null>(null);
+  resultado = signal<ResultadoEvaluacion | null>(null);
   error = signal<string | null>(null);
 
   total = computed(() => this.preguntas().length);
@@ -46,7 +49,7 @@ export class EvaluationPage {
     this.estado.set('cargando');
     this.error.set(null);
 
-    this.evaluacion.preguntas().subscribe({
+    this.jugador.preguntas().subscribe({
       next: preguntas => {
         if (preguntas.length === 0) {
           this.error.set('No hay preguntas disponibles. Intenta más tarde.');
@@ -65,7 +68,7 @@ export class EvaluationPage {
     });
   }
 
-  responder(opcion: OpcionId): void {
+  responder(opcion: number): void {
     if (this.seleccion() || this.estado() !== 'respondiendo') return; // evita doble toque
 
     this.seleccion.set(opcion);
@@ -93,23 +96,32 @@ export class EvaluationPage {
   }
 
   entrar(): void {
-    this.router.navigateByUrl('/tabs', { replaceUrl: true });
+    this.router.navigateByUrl(this.repitiendo ? '/tabs/perfil' : '/tabs', { replaceUrl: true });
   }
 
   async salir(): Promise<void> {
+    if (this.repitiendo) {
+      this.router.navigateByUrl('/tabs/perfil', { replaceUrl: true });
+      return;
+    }
     await this.auth.cerrarSesion();
     this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 
   formatearNivel(nivel: string): string {
-    return nivel.replace(/_/g, ' ');
+    return etiqueta(nivel);
   }
 
-  private enviar(respuestas: OpcionId[]): void {
+  /** Votos por nivel, del más votado al menos votado. */
+  votos(r: ResultadoEvaluacion): { nivel: string; peso: number }[] {
+    return Object.entries(r.votos).map(([nivel, peso]) => ({ nivel, peso })).sort((a, b) => b.peso - a.peso);
+  }
+
+  private enviar(respuestas: number[]): void {
     this.estado.set('enviando');
     this.error.set(null);
 
-    this.evaluacion.registrar(respuestas).subscribe({
+    this.jugador.responderEvaluacion(respuestas).subscribe({
       next: r => {
         this.resultado.set(r);
         this.estado.set('resultado');

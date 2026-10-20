@@ -1,0 +1,105 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar class="toolbar-kinet"><app-encabezado></app-encabezado></ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="pagina">
+    <div class="titulo-pagina">
+      <app-refrescar (refrescar)="ionViewWillEnter()" />
+      <div>
+        <p class="eyebrow"><span class="punto"></span>Administración</p>
+        <h1>Retos</h1>
+        <p class="titulo-pagina__lead">Se editan en borrador. Al activarlos, los jugadores pueden unirse.</p>
+      </div>
+      <button type="button" class="btn-primary nueva" (click)="abrirNuevo()"><ion-icon name="add-outline"></ion-icon>&nbsp;Nuevo</button>
+    </div>
+
+    @if (formAbierto()) {
+      <form class="tarjeta formulario" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+        <p class="titulo-seccion">{{ editando() ? 'Editar reto' : 'Nuevo reto' }}</p>
+        <div class="campos campos--2">
+          <div class="field"><label class="field__label" for="r1">Nombre</label>
+            <div class="field__box"><input id="r1" formControlName="nombre" maxlength="100" /></div></div>
+          <div class="field"><label class="field__label" for="r2">Imagen (enlace, opcional)</label>
+            <div class="field__box"><input id="r2" type="url" formControlName="imagenUrl" /></div></div>
+        </div>
+        <div class="field"><label class="field__label" for="r3">Descripción</label>
+          <div class="field__box field__box--area"><textarea id="r3" formControlName="descripcion" rows="2" maxlength="500"></textarea></div></div>
+        <div class="field"><label class="field__label" for="r4">Condiciones (opcional)</label>
+          <div class="field__box"><input id="r4" formControlName="condiciones" maxlength="300" /></div></div>
+
+        <div class="campos campos--2">
+          <div class="field"><label class="field__label" for="r5">Métrica</label>
+            <div class="field__box"><select id="r5" formControlName="metrica">
+              @for (m of metricas; track m) { <option [value]="m">{{ etiqueta(m) }}</option> }
+            </select></div></div>
+          <div class="field"><label class="field__label" for="r6">Meta</label>
+            <div class="field__box"><input id="r6" type="number" min="0.01" step="any" formControlName="valorMeta" /></div></div>
+          <div class="field"><label class="field__label" for="r7">XP de recompensa</label>
+            <div class="field__box"><input id="r7" type="number" min="1" max="5000" formControlName="xpRecompensa" /></div></div>
+          <div class="field"><label class="field__label" for="r8">Periodicidad</label>
+            <div class="field__box"><select id="r8" formControlName="periodicidad">
+              @for (p of periodicidades; track p) { <option [value]="p">{{ etiqueta(p) }}</option> }
+            </select></div></div>
+          <div class="field"><label class="field__label" for="r9">Ámbito</label>
+            <div class="field__box"><select id="r9" formControlName="ambito">
+              @for (a of ambitos; track a) { <option [value]="a">{{ etiqueta(a) }}</option> }
+            </select></div></div>
+          <div class="field"><label class="field__label" for="r10">Actividad (opcional)</label>
+            <div class="field__box"><select id="r10" formControlName="idTipoActividad">
+              <option [ngValue]="null">Cualquiera</option>
+              @for (a of actividades(); track a.id) { <option [ngValue]="a.id">{{ etiqueta(a.nombre) }}</option> }
+            </select></div></div>
+          <div class="field"><label class="field__label" for="r11">Nivel de habilidad (opcional)</label>
+            <div class="field__box"><select id="r11" formControlName="idNivelHabilidad">
+              <option [ngValue]="null">Todos</option>
+              @for (n of niveles(); track n.id) { <option [ngValue]="n.id">{{ etiqueta(n.nombre) }}</option> }
+            </select></div></div>
+          <div class="field"><label class="field__label" for="r12">Temporada (opcional)</label>
+            <div class="field__box"><select id="r12" formControlName="idTemporada">
+              <option [ngValue]="null">Ninguna</option>
+              @for (t of temporadas(); track t.id) { <option [ngValue]="t.id">{{ t.nombre }}</option> }
+            </select></div></div>
+          <div class="field"><label class="field__label" for="r13">Disponible desde</label>
+            <div class="field__box"><input id="r13" type="datetime-local" formControlName="fechaInicio" /></div></div>
+          <div class="field"><label class="field__label" for="r14">Hasta (opcional)</label>
+            <div class="field__box"><input id="r14" type="datetime-local" formControlName="fechaFin" /></div></div>
+        </div>
+        <div class="acciones">
+          <button type="submit" class="btn-primary" [disabled]="trabajando()">Guardar</button>
+          <button type="button" class="btn-secundario" (click)="formAbierto.set(false)">Cancelar</button>
+        </div>
+      </form>
+    }
+
+    @if (error()) { <p class="alert-error" role="alert">{{ error() }}</p> }
+    @if (ok()) { <p class="aviso-ok" role="status">{{ ok() }}</p> }
+
+    <div class="rejilla rejilla--3">
+      @for (r of lista.items(); track r.id) {
+        <article class="tarjeta">
+          <div class="tarjeta__cabecera">
+            <h2 class="titulo-tarjeta">{{ r.nombre }}</h2>
+            <span class="chip" [class]="claseEstado(r.estado)">{{ etiqueta(r.estado) }}</span>
+          </div>
+          <p class="texto-suave">{{ r.descripcion }}</p>
+          <p class="texto-tenue">
+            Meta {{ r.valorMeta }} {{ unidad[r.metrica] }} · {{ etiqueta(r.periodicidad) }} · {{ etiqueta(r.ambito) }} · +{{ r.xpRecompensa }} XP
+            @if (r.actividad) { · {{ etiqueta(r.actividad) }} }
+            @if (r.nivelHabilidad) { · {{ etiqueta(r.nivelHabilidad) }} }
+          </p>
+          <div class="acciones">
+            @if (r.estado === 'BORRADOR') {
+              <button type="button" class="btn-chico" [disabled]="trabajando()" (click)="editar(r)">Editar</button>
+              <button type="button" class="btn-primary btn-chico" [disabled]="trabajando()" (click)="cambiarEstado(r, 'ACTIVO')">Publicar</button>
+            }
+            @if (r.estado === 'ACTIVO') {
+              <button type="button" class="btn-peligro btn-chico" [disabled]="trabajando()" (click)="cambiarEstado(r, 'FINALIZADO')">Finalizar</button>
+            }
+          </div>
+        </article>
+      }
+    </div>
+    <app-pie-lista [lista]="lista" vacio="No hay retos creados." />
+  </div>
+</ion-content>

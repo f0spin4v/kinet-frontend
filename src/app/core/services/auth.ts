@@ -1,15 +1,11 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Preferences } from '@capacitor/preferences';
-import { Observable, firstValueFrom, map, tap } from 'rxjs';
+import { Observable, firstValueFrom, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import {
-  AuthResponse, LoginRequest, RegistroRequest, SesionDto, Usuario, UsuarioDto, aUsuario, evaluacionCompleta,
-} from '../models/auth.models';
+import { LoginRequest, Mensaje, RegistroRequest, Rol, Sesion, Usuario } from '../models/api.models';
 
 const TOKEN_KEY = 'kinet_token';
-
-const aSesion = (s: SesionDto): AuthResponse => ({ token: s.token, usuario: aUsuario(s.usuario) });
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -23,10 +19,22 @@ export class AuthService {
   readonly token = this._token.asReadonly();
   readonly usuario = this._usuario.asReadonly();
   readonly autenticado = computed(() => this._token() !== null);
-  readonly evaluado = computed(() => {
+  readonly rol = computed<Rol | null>(() => this._usuario()?.rol ?? null);
+  readonly esJugador = computed(() => this.rol() === 'JUGADOR');
+  readonly esStaff = computed(() => this.rol() === 'ADMINISTRADOR' || this.rol() === 'ENTRENADOR');
+  /** Solo los jugadores hacen la evaluación de nivel; el equipo no. */
+  readonly evaluado = computed(() => !this.esJugador() || this._usuario()?.nivelHabilidad != null);
+  /** "Laura Gómez" */
+  readonly nombreCompleto = computed(() => {
     const u = this._usuario();
-    return u !== null && evaluacionCompleta(u);
+    return u ? `${u.nombres} ${u.apellidos}`.trim() : '';
   });
+
+  /** Dónde cae cada rol al entrar. */
+  rutaInicial(): string {
+    if (this.esStaff()) return '/staff';
+    return this.evaluado() ? '/tabs' : '/evaluacion';
+  }
 
   /** Recupera la sesión guardada al abrir la app. Solo se ejecuta una vez. */
   async cargarSesion(): Promise<void> {
@@ -38,33 +46,27 @@ export class AuthService {
 
     this._token.set(value);
     try {
-      const dto = await firstValueFrom(this.http.get<UsuarioDto>(`${this.api}/usuarios/me`));
-      this._usuario.set(aUsuario(dto));
+      const usuario = await firstValueFrom(this.http.get<Usuario>(`${this.api}/usuarios/me`));
+      this._usuario.set(usuario);
     } catch {
       await this.cerrarSesion(); // token vencido o inválido
     }
   }
 
-  registrar(datos: RegistroRequest): Observable<AuthResponse> {
-    const cuerpo = {
-      nombres: datos.nombres,
-      apellidos: datos.apellidos,
-      correo: datos.correo,
-      contrasena: datos.contrasena,
-      gamertag: datos.nickname,
-      aceptaPolitica: datos.aceptaDatos,
-    };
-    return this.http.post<SesionDto>(`${this.api}/auth/registro`, cuerpo).pipe(
-      map(aSesion),
-      tap(r => this.guardarSesion(r))
-    );
+  registrar(datos: RegistroRequest): Observable<Sesion> {
+    return this.http.post<Sesion>(`${this.api}/auth/registro`, datos).pipe(tap(r => this.guardarSesion(r)));
   }
 
-  iniciarSesion(datos: LoginRequest): Observable<AuthResponse> {
-    return this.http.post<SesionDto>(`${this.api}/auth/login`, datos).pipe(
-      map(aSesion),
-      tap(r => this.guardarSesion(r))
-    );
+  iniciarSesion(datos: LoginRequest): Observable<Sesion> {
+    return this.http.post<Sesion>(`${this.api}/auth/login`, datos).pipe(tap(r => this.guardarSesion(r)));
+  }
+
+  recuperarContrasena(correo: string): Observable<Mensaje> {
+    return this.http.post<Mensaje>(`${this.api}/auth/recuperar-contrasena`, { correo });
+  }
+
+  restablecerContrasena(token: string, nuevaContrasena: string): Observable<Mensaje> {
+    return this.http.post<Mensaje>(`${this.api}/auth/restablecer-contrasena`, { token, nuevaContrasena });
   }
 
   /** Para actualizar el nivel después de la evaluación o al editar el perfil. */
@@ -78,7 +80,7 @@ export class AuthService {
     await Preferences.remove({ key: TOKEN_KEY });
   }
 
-  private guardarSesion(r: AuthResponse): void {
+  private guardarSesion(r: Sesion): void {
     this._token.set(r.token);
     this._usuario.set(r.usuario);
     Preferences.set({ key: TOKEN_KEY, value: r.token });

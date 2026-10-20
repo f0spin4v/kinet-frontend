@@ -4,18 +4,19 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { IonContent, IonIcon, IonSpinner } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { atOutline, eyeOffOutline, eyeOutline, lockClosedOutline, mailOutline, personOutline, triangle } from 'ionicons/icons';
+import {
+  atOutline, calendarOutline, eyeOffOutline, eyeOutline, lockClosedOutline, mailOutline, personOutline, triangle,
+} from 'ionicons/icons';
 import { finalize } from 'rxjs';
-import { evaluacionCompleta } from '../../../core/models/auth.models';
 import { AuthService } from '../../../core/services/auth';
 import { mensajeDeError } from '../../../core/utils/http-error';
 
-type Campo = 'nombres' | 'apellidos' | 'nickname' | 'correo' | 'contrasena' | 'aceptaDatos';
+type Campo = 'nombres' | 'apellidos' | 'gamertag' | 'correo' | 'contrasena' | 'fechaNacimiento' | 'aceptaPolitica';
 
 const LONGITUD_CONTRASENA = 'La contraseña debe tener entre 8 y 72 caracteres.';
-const LONGITUD_NICKNAME = 'El nickname debe tener entre 3 y 30 caracteres.';
+const LONGITUD_GAMERTAG = 'El gamertag debe tener entre 3 y 30 caracteres.';
 
-/** Mismos textos que las validaciones de RegistroRequest en el backend. */
+/** Mismos textos que las validaciones de RegistroDTO en el backend. */
 const MENSAJES: Record<Campo, Record<string, string>> = {
   nombres: {
     required: 'Escribe tus nombres.',
@@ -25,11 +26,11 @@ const MENSAJES: Record<Campo, Record<string, string>> = {
     required: 'Escribe tus apellidos.',
     maxlength: 'Los apellidos no pueden tener más de 80 caracteres.',
   },
-  nickname: {
-    required: 'Elige un nickname.',
-    minlength: LONGITUD_NICKNAME,
-    maxlength: LONGITUD_NICKNAME,
-    pattern: 'El nickname solo puede tener letras, números y guion bajo.',
+  gamertag: {
+    required: 'Elige un gamertag.',
+    minlength: LONGITUD_GAMERTAG,
+    maxlength: LONGITUD_GAMERTAG,
+    pattern: 'El gamertag solo puede tener letras, números y guion bajo.',
   },
   correo: {
     required: 'Escribe tu correo.',
@@ -42,7 +43,10 @@ const MENSAJES: Record<Campo, Record<string, string>> = {
     maxlength: LONGITUD_CONTRASENA,
     pattern: 'La contraseña debe incluir al menos una letra y un número.',
   },
-  aceptaDatos: {
+  fechaNacimiento: {
+    futura: 'La fecha de nacimiento debe estar en el pasado.',
+  },
+  aceptaPolitica: {
     required: 'Debes aceptar la política de tratamiento de datos.',
   },
 };
@@ -58,10 +62,12 @@ export class RegisterPage {
   private auth = inject(AuthService);
   private router = inject(Router);
 
+  hoy = new Date().toLocaleDateString('en-CA');
+
   form = this.fb.nonNullable.group({
     nombres: ['', [Validators.required, Validators.maxLength(80)]],
     apellidos: ['', [Validators.required, Validators.maxLength(80)]],
-    nickname: ['', [
+    gamertag: ['', [
       Validators.required,
       Validators.minLength(3),
       Validators.maxLength(30),
@@ -74,7 +80,8 @@ export class RegisterPage {
       Validators.maxLength(72),
       Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d).+$/),
     ]],
-    aceptaDatos: [false, Validators.requiredTrue],
+    fechaNacimiento: ['', [(c: { value: string }) => (c.value && c.value >= this.hoy ? { futura: true } : null)]],
+    aceptaPolitica: [false, Validators.requiredTrue],
   });
 
   cargando = signal(false);
@@ -82,7 +89,9 @@ export class RegisterPage {
   verContrasena = signal(false);
 
   constructor() {
-    addIcons({ personOutline, atOutline, mailOutline, lockClosedOutline, eyeOutline, eyeOffOutline, triangle });
+    addIcons({
+      personOutline, atOutline, mailOutline, lockClosedOutline, eyeOutline, eyeOffOutline, calendarOutline, triangle,
+    });
   }
 
   /** Devuelve el mensaje del primer error del campo, o null si no hay que mostrar nada. */
@@ -102,13 +111,11 @@ export class RegisterPage {
     this.cargando.set(true);
     this.errorServidor.set(null);
 
-    this.auth.registrar(this.form.getRawValue())
+    const { fechaNacimiento, ...resto } = this.form.getRawValue();
+    this.auth.registrar({ ...resto, fechaNacimiento: fechaNacimiento || null })
       .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
-        next: r => this.router.navigateByUrl(
-          evaluacionCompleta(r.usuario) ? '/tabs' : '/evaluacion',
-          { replaceUrl: true }
-        ),
+        next: () => this.router.navigateByUrl(this.auth.rutaInicial(), { replaceUrl: true }),
         error: (e: HttpErrorResponse) => this.errorServidor.set(mensajeDeError(e)),
       });
   }

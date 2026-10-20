@@ -1,0 +1,111 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar class="toolbar-kinet"><app-encabezado></app-encabezado></ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="pagina">
+    <div class="titulo-pagina">
+      <app-refrescar (refrescar)="cargar()" />
+      <div>
+        <p class="eyebrow"><span class="punto"></span>Administración</p>
+        <h1>Catálogos</h1>
+        <p class="titulo-pagina__lead">Actividades y su XP, niveles, logros y las preguntas de la evaluación de nivel.</p>
+      </div>
+    </div>
+
+    <div class="pestanas" role="tablist">
+      <button type="button" role="tab" class="pestana" [class.pestana--activa]="pestana() === 'actividades'" (click)="cambiar('actividades')">Actividades y XP</button>
+      <button type="button" role="tab" class="pestana" [class.pestana--activa]="pestana() === 'niveles'" (click)="cambiar('niveles')">Niveles</button>
+      <button type="button" role="tab" class="pestana" [class.pestana--activa]="pestana() === 'logros'" (click)="cambiar('logros')">Logros</button>
+      <button type="button" role="tab" class="pestana" [class.pestana--activa]="pestana() === 'cuestionario'" (click)="cambiar('cuestionario')">Cuestionario</button>
+    </div>
+
+    @if (error()) { <p class="alert-error" role="alert">{{ error() }}</p> }
+    @if (ok()) { <p class="aviso-ok" role="status">{{ ok() }}</p> }
+
+    @if (cargando()) {
+      <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else {
+      @if (pestana() === 'actividades') {
+        <form class="tarjeta formulario" (ngSubmit)="crearActividad()">
+          <div class="inline">
+            <div class="field">
+              <label class="field__label" for="na">Nueva actividad</label>
+              <div class="field__box"><input id="na" [formControl]="nuevaActividad" maxlength="40" placeholder="Ej. YOGA" /></div>
+            </div>
+            <button type="submit" class="btn-primary nueva" [disabled]="trabajando()"><ion-icon name="add-outline"></ion-icon>&nbsp;Crear</button>
+          </div>
+        </form>
+
+        <div class="rejilla rejilla--2">
+          @for (a of actividades(); track a.id) {
+            <article class="tarjeta">
+              <div class="tarjeta__cabecera">
+                <h2 class="titulo-tarjeta">{{ etiqueta(a.nombre) }}</h2>
+                <span class="chip" [class]="claseEstado(a.estado)">{{ etiqueta(a.estado) }}</span>
+              </div>
+              @for (r of a.reglasVigentes; track r.id) {
+                <div class="regla-fila">
+                  <span>{{ etiqueta(r.intensidad) }}</span>
+                  <span>{{ r.xpPorMinuto }} XP/min · desde {{ r.duracionMinimaMin }} min · vigente desde {{ fechaLarga(r.vigenteDesde) }}</span>
+                </div>
+              } @empty {
+                <p class="texto-tenue">Sin reglas vigentes: no otorga XP.</p>
+              }
+              <div class="acciones">
+                <button type="button" class="btn-chico" [disabled]="trabajando()" (click)="renombrar(a)">Renombrar</button>
+                <button type="button" class="btn-chico" [disabled]="trabajando()" (click)="abrirRegla(a)">Nueva regla de XP</button>
+                <button type="button" class="btn-chico" [disabled]="trabajando()" (click)="alternarActividad(a)">
+                  {{ a.estado === 'ACTIVA' ? 'Desactivar' : 'Activar' }}
+                </button>
+              </div>
+
+              @if (reglaPara()?.id === a.id) {
+                <form [formGroup]="regla" (ngSubmit)="guardarRegla()" class="formulario" novalidate>
+                  <div class="campos campos--2">
+                    <div class="field"><label class="field__label" for="g1">Intensidad</label>
+                      <div class="field__box"><select id="g1" formControlName="intensidad">
+                        @for (i of intensidades; track i) { <option [value]="i">{{ etiqueta(i) }}</option> }
+                      </select></div></div>
+                    <div class="field"><label class="field__label" for="g2">XP por minuto</label>
+                      <div class="field__box"><input id="g2" type="number" step="0.01" min="0.01" formControlName="xpPorMinuto" /></div></div>
+                    <div class="field"><label class="field__label" for="g3">Duración mínima (min)</label>
+                      <div class="field__box"><input id="g3" type="number" min="1" max="240" formControlName="duracionMinimaMin" /></div></div>
+                    <div class="field"><label class="field__label" for="g4">Vigente desde</label>
+                      <div class="field__box"><input id="g4" type="date" formControlName="vigenteDesde" /></div></div>
+                  </div>
+                  <button type="submit" class="btn-primary" [disabled]="trabajando()">Guardar regla</button>
+                </form>
+              }
+            </article>
+          }
+        </div>
+      }
+
+      @if (pestana() === 'niveles') {
+        <div class="tarjeta">
+          <p class="texto-suave" style="margin-bottom: 12px">XP acumulado necesario para llegar a cada nivel (debe crecer con el número de nivel).</p>
+          <ul class="lista">
+            @for (n of niveles(); track n.numeroNivel) {
+              <li class="item">
+                <div class="item__texto"><p class="item__titulo">Nivel {{ n.numeroNivel }}</p></div>
+                <div class="inline">
+                  <div class="field__box xp-input"><input type="number" min="0" [(ngModel)]="xpEditado[n.numeroNivel]" [attr.aria-label]="'XP del nivel ' + n.numeroNivel" /></div>
+                  <button type="button" class="btn-chico" [disabled]="trabajando() || xpEditado[n.numeroNivel] === n.xpRequerido" (click)="guardarNivel(n)">Guardar</button>
+                </div>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+
+      @if (pestana() === 'logros') {
+        <app-logros-admin />
+      }
+
+      @if (pestana() === 'cuestionario') {
+        <app-preguntas-admin />
+      }
+    }
+  </div>
+</ion-content>

@@ -3,5 +3,28 @@
     <ion-icon name="triangle" class="marca__logo" aria-hidden="true"></ion-icon>
     <span class="marca__nombre">KINET</span>
   </div>
-  <a routerLink="/tabs/perfil" class="avatar" aria-label="Ir a tu perfil">{{ iniciales() }}</a>
+  <div class="encabezado__acciones">
+    @if (esJugador()) {
+      <a routerLink="/tabs/inicio/notificaciones" class="campana" aria-label="Notificaciones">
+        <ion-icon name="notifications-outline" aria-hidden="true"></ion-icon>
+      </a>
+    }
+    <div class="menu">
+      <button type="button" class="avatar" #boton aria-label="Menú de cuenta" aria-haspopup="menu"
+              [attr.aria-expanded]="abierto()" (click)="alternar($event)">{{ iniciales() }}</button>
+      <!-- el panel se pasa al <body> al iniciar: el encabezado de Ionic recorta todo lo que se sale de él -->
+      <div class="menu__panel" #panel role="menu" [class.menu__panel--abierto]="abierto()" [style.top.px]="arriba()" [style.right.px]="derecha()">
+          <div class="menu__cuenta">
+            <strong>{{ nombre() }}</strong>
+            <span>{{ correo() }}</span>
+          </div>
+          <a role="menuitem" class="menu__opcion" [routerLink]="rutaPerfil()" (click)="cerrar()">
+            <ion-icon name="person-outline" aria-hidden="true"></ion-icon>Mi perfil
+          </a>
+          <button type="button" role="menuitem" class="menu__opcion menu__opcion--salir" (click)="cerrarSesion()">
+            <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>Cerrar sesión
+          </button>
+      </div>
+    </div>
+  </div>
 </div>

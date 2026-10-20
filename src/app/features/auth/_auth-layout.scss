@@ -87,3 +87,33 @@
     text-decoration: none;
   }
 }
+
+// ----- Web: la pantalla se centra como una tarjeta -----
+@media (min-width: 768px) {
+  .auth {
+    justify-content: center;
+    max-width: 520px;
+    min-height: 100%;
+    padding: 40px 40px 48px;
+  }
+
+  .auth__intro {
+    margin: 32px 0 28px;
+  }
+}
+
+@media (min-width: 992px) {
+  .auth {
+    max-width: 560px;
+    margin-top: 4vh;
+    padding: 48px;
+    border: 1px solid var(--kinet-surface-high);
+    border-radius: 20px;
+    background: var(--kinet-surface);
+    min-height: 0;
+  }
+
+  .auth__switch {
+    margin-top: 0;
+  }
+}

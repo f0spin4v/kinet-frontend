@@ -6,13 +6,13 @@ import {
   IonTitle, IonToolbar, NavController, ToastController,
 } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { atOutline, calendarOutline, personOutline } from 'ionicons/icons';
+import { atOutline, calendarOutline, imageOutline, personOutline } from 'ionicons/icons';
 import { finalize } from 'rxjs';
 import { AuthService } from '../../../core/services/auth';
-import { UsuarioService } from '../../../core/services/usuario';
+import { JugadorService } from '../../../core/services/jugador';
 import { mensajeDeError } from '../../../core/utils/http-error';
 
-type Campo = 'nombres' | 'apellidos' | 'nickname' | 'fechaNacimiento';
+type Campo = 'nombres' | 'apellidos' | 'gamertag' | 'avatarUrl' | 'fechaNacimiento';
 
 /** Fecha de hoy en formato AAAA-MM-DD, en la zona horaria del usuario. */
 function hoy(): string {
@@ -25,8 +25,9 @@ function anteriorAHoy(control: AbstractControl): ValidationErrors | null {
   return control.value >= hoy() ? { noPasada: true } : null;
 }
 
-const LONGITUD_NICKNAME = 'El nickname debe tener entre 3 y 30 caracteres.';
+const LONGITUD_GAMERTAG = 'El gamertag debe tener entre 3 y 30 caracteres.';
 
+/** Mismos textos que EditarPerfilDTO en el backend. */
 const MENSAJES: Record<Campo, Record<string, string>> = {
   nombres: {
     required: 'Escribe tus nombres.',
@@ -36,11 +37,15 @@ const MENSAJES: Record<Campo, Record<string, string>> = {
     required: 'Escribe tus apellidos.',
     maxlength: 'Los apellidos no pueden tener más de 80 caracteres.',
   },
-  nickname: {
-    required: 'Elige un nickname.',
-    minlength: LONGITUD_NICKNAME,
-    maxlength: LONGITUD_NICKNAME,
-    pattern: 'El nickname solo puede tener letras, números y guion bajo.',
+  gamertag: {
+    required: 'Elige un gamertag.',
+    minlength: LONGITUD_GAMERTAG,
+    maxlength: LONGITUD_GAMERTAG,
+    pattern: 'El gamertag solo puede tener letras, números y guion bajo.',
+  },
+  avatarUrl: {
+    pattern: 'La imagen debe ser una dirección que empiece por http o https.',
+    maxlength: 'La dirección de la imagen es demasiado larga.',
   },
   fechaNacimiento: {
     noPasada: 'La fecha de nacimiento debe ser anterior a hoy.',
@@ -59,21 +64,23 @@ const MENSAJES: Record<Campo, Record<string, string>> = {
 export class EditarPerfilPage {
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
-  private usuarios = inject(UsuarioService);
+  private jugador = inject(JugadorService);
   private nav = inject(NavController);
   private toast = inject(ToastController);
 
   readonly maxFecha = hoy();
+  readonly rutaVolver = this.auth.esJugador() ? '/tabs/perfil' : '/staff/perfil';
 
   form = this.fb.nonNullable.group({
     nombres: ['', [Validators.required, Validators.maxLength(80)]],
     apellidos: ['', [Validators.required, Validators.maxLength(80)]],
-    nickname: ['', [
+    gamertag: ['', [
       Validators.required,
       Validators.minLength(3),
       Validators.maxLength(30),
       Validators.pattern(/^[A-Za-z0-9_]+$/),
     ]],
+    avatarUrl: ['', [Validators.maxLength(300), Validators.pattern(/^(https?:\/\/.+)?$/)]],
     fechaNacimiento: ['', anteriorAHoy],
   });
 
@@ -81,14 +88,15 @@ export class EditarPerfilPage {
   errorServidor = signal<string | null>(null);
 
   constructor() {
-    addIcons({ personOutline, atOutline, calendarOutline });
+    addIcons({ personOutline, atOutline, calendarOutline, imageOutline });
 
     const u = this.auth.usuario();
     if (u) {
       this.form.setValue({
         nombres: u.nombres,
         apellidos: u.apellidos,
-        nickname: u.nickname ?? '',
+        gamertag: u.gamertag ?? '',
+        avatarUrl: u.avatarUrl ?? '',
         fechaNacimiento: u.fechaNacimiento ?? '',
       });
     }
@@ -111,21 +119,17 @@ export class EditarPerfilPage {
     this.guardando.set(true);
     this.errorServidor.set(null);
 
-    this.usuarios.actualizarPerfil({
+    this.jugador.editarPerfil({
       nombres: v.nombres.trim(),
       apellidos: v.apellidos.trim(),
-      nickname: v.nickname.trim(),
+      gamertag: v.gamertag.trim(),
+      avatarUrl: v.avatarUrl.trim() || null,
       fechaNacimiento: v.fechaNacimiento || null,
-      avatarUrl: this.auth.usuario()?.avatarUrl ?? null,
     })
       .pipe(finalize(() => this.guardando.set(false)))
       .subscribe({
         next: async () => {
-          const aviso = await this.toast.create({
-            message: 'Perfil actualizado',
-            duration: 2000,
-            position: 'top',
-          });
+          const aviso = await this.toast.create({ message: 'Perfil actualizado', duration: 2000, position: 'top' });
           await aviso.present();
           this.nav.back();
         },
