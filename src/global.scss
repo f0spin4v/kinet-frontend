@@ -139,59 +139,58 @@
   ion-spinner {
     --color: #ffffff;
   }
-  .alerta-boton-peligro {
-    color: var(--ion-color-danger) !important;
-    font-weight: 700 !important;
-  }
-  .toolbar-kinet {
-    --min-height: 64px;
-    --padding-start: 20px;
-    --padding-end: 20px;
-    --background: var(--kinet-bg);
-  }
-  // ===== Encabezado de página =====
-  .punto {
-    width: 8px;
-    height: 8px;
-    flex-shrink: 0;
-    border-radius: var(--kinet-radius-pill);
-    background: var(--kinet-accent);
-  }
+}
 
-  .eyebrow {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin: 0 0 4px;
+.alerta-boton-peligro {
+  color: var(--ion-color-danger) !important;
+  font-weight: 700 !important;
+}
+.toolbar-kinet {
+  --min-height: 64px;
+  --padding-start: 20px;
+  --padding-end: 20px;
+  --background: var(--kinet-bg);
+}
+// ===== Encabezado de página =====
+.punto {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: var(--kinet-radius-pill);
+  background: var(--kinet-accent);
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  font-family: var(--kinet-font-display);
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--kinet-accent-soft);
+}
+
+.titulo-pagina {
+  margin-bottom: 28px;
+
+  h1 {
+    margin: 0;
     font-family: var(--kinet-font-display);
-    font-weight: 700;
-    font-size: 11px;
-    line-height: 14px;
-    letter-spacing: 1.1px;
-    text-transform: uppercase;
-    color: var(--kinet-accent-soft);
-  }
-
-  .titulo-pagina {
-    margin-bottom: 28px;
-
-    h1 {
-      margin: 0;
-      font-family: var(--kinet-font-display);
-      font-weight: 600;
-      font-size: 26px;
-      line-height: 32px;
-      letter-spacing: -0.52px;
-      color: var(--kinet-text);
-    }
-  }
-
-  .titulo-pagina__lead {
-    margin: 4px 0 0;
-    font-size: 14px;
-    line-height: 20px;
-    color: var(--kinet-text-secondary);
+    font-weight: 600;
+    font-size: 26px;
+    line-height: 32px;
+    letter-spacing: -0.52px;
+    color: var(--kinet-text);
   }
 }
 
-
+.titulo-pagina__lead {
+  margin: 4px 0 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--kinet-text-secondary);
+}

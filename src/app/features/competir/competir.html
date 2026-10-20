@@ -1,0 +1,217 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar class="toolbar-kinet"><app-encabezado></app-encabezado></ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="pagina">
+    <div class="titulo-pagina">
+      <app-refrescar (refrescar)="cargar()" />
+      <div>
+        <p class="eyebrow"><span class="punto"></span>Competencia</p>
+        <h1>Competir</h1>
+        <p class="titulo-pagina__lead">Sube de rango en la temporada, reta a otros jugadores o únete a un clan.</p>
+      </div>
+    </div>
+
+    <div class="pestanas" role="tablist">
+      <button type="button" role="tab" class="pestana" [class.pestana--activa]="pestana() === 'temporada'"
+              [attr.aria-selected]="pestana() === 'temporada'" (click)="cambiar('temporada')">Temporada</button>
+      <button type="button" role="tab" class="pestana" [class.pestana--activa]="pestana() === 'competencias'"
+              [attr.aria-selected]="pestana() === 'competencias'" (click)="cambiar('competencias')">
+        Competencias @if (invitaciones.total() > 0) { <span class="chip chip--error">{{ invitaciones.total() }}</span> }
+      </button>
+      <button type="button" role="tab" class="pestana" [class.pestana--activa]="pestana() === 'clan'"
+              [attr.aria-selected]="pestana() === 'clan'" (click)="cambiar('clan')">Clan</button>
+    </div>
+
+    @if (error()) { <p class="alert-error" role="alert">{{ error() }}</p> }
+    @if (aviso()) { <p class="aviso-ok" role="status">{{ aviso() }}</p> }
+
+    @if (cargando()) {
+      <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+    } @else {
+      <!-- ========== TEMPORADA ========== -->
+      @if (pestana() === 'temporada') {
+        @if (!temporada()) {
+          <div class="tarjeta vacio">
+            <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+            <p>No hay una temporada activa. Cuando el equipo abra una, podrás competir aquí.</p>
+          </div>
+        } @else {
+          <div class="rejilla rejilla--principal-lateral">
+            <section class="tarjeta tarjeta--resalte">
+              <p class="etiqueta">Temporada activa</p>
+              <h2 class="titulo-tarjeta">{{ temporada()!.nombre }}</h2>
+              <p class="texto-suave">{{ fechaLarga(temporada()!.fechaInicio) }} – {{ fechaLarga(temporada()!.fechaFin) }}</p>
+
+              @if (participacion(); as p) {
+                <div class="rejilla rejilla--metricas rango">
+                  <div class="metrica-chica"><p class="etiqueta">Rango</p><p class="valor">{{ p.rangoActual.nombre }}</p></div>
+                  <div class="metrica-chica"><p class="etiqueta">Puntos</p><p class="valor">{{ numero(p.puntosActuales) }}</p></div>
+                  <div class="metrica-chica"><p class="etiqueta">Posición</p><p class="valor">{{ p.posicion ?? '—' }}</p></div>
+                  <div class="metrica-chica"><p class="etiqueta">Estado</p><p class="valor"><span class="chip" [class]="claseEstado(p.estado)">{{ etiqueta(p.estado) }}</span></p></div>
+                </div>
+              } @else {
+                <p class="texto-suave">Aún no te has inscrito. Al pedir tu primer enfrentamiento entras a la temporada (los primeros son de colocación).</p>
+              }
+
+              <div class="acciones">
+                @if (!participacion() || participacion()!.estado === 'ACTIVA') {
+                  <button type="button" class="btn-primary" [disabled]="trabajando() || busqueda() !== null" (click)="buscar()">
+                    <ion-icon name="search-outline"></ion-icon>&nbsp;Buscar enfrentamiento
+                  </button>
+                }
+                @if (busqueda()) {
+                  <button type="button" class="btn-secundario" [disabled]="trabajando()" (click)="cancelarBusqueda()">Cancelar búsqueda</button>
+                }
+                @if (participacion()?.estado === 'ACTIVA') {
+                  <button type="button" class="btn-peligro" [disabled]="trabajando()" (click)="confirmarAbandono()">Abandonar temporada</button>
+                }
+              </div>
+            </section>
+
+            <section class="tarjeta">
+              <p class="titulo-seccion">Ranking (top 20)</p>
+              <ol class="lista ranking">
+                @for (r of ranking(); track r.idUsuario) {
+                  <li class="item" [class.item--yo]="esMio(r)">
+                    <div class="item__texto">
+                      <p class="item__titulo">{{ r.posicion }}. {{ r.gamertag }} @if (esMio(r)) { <span class="chip chip--info">Tú</span> }</p>
+                      <p class="item__detalle">{{ r.rango }}</p>
+                    </div>
+                    <span class="chip">{{ numero(r.puntos) }} pts</span>
+                  </li>
+                } @empty {
+                  <li class="vacio"><p>Todavía no hay jugadores en el ranking.</p></li>
+                }
+              </ol>
+            </section>
+          </div>
+
+          <div class="rejilla rejilla--2">
+            <section class="tarjeta">
+              <p class="titulo-seccion">Mis enfrentamientos</p>
+              <ul class="lista">
+                @for (e of enfrentamientos.items(); track e.id) {
+                  <li>
+                    <a [routerLink]="['/tabs/competir/enfrentamientos', e.id]" class="item item--enlace">
+                      <div class="item__texto">
+                        <p class="item__titulo">{{ e.participantes[0]?.gamertag }} vs {{ e.participantes[1]?.gamertag ?? '—' }}</p>
+                        <p class="item__detalle">{{ e.tipo === 'COLOCACION' ? 'Colocación' : 'Estándar' }} · {{ fechaCorta(e.fechaInicio) }}</p>
+                      </div>
+                      <span class="chip" [class]="claseEstado(e.estado)">{{ etiqueta(e.estado) }}</span>
+                    </a>
+                  </li>
+                }
+              </ul>
+              <app-pie-lista [lista]="enfrentamientos" vacio="Aún no tienes enfrentamientos." />
+            </section>
+
+            <section class="tarjeta">
+              <p class="titulo-seccion">Historial de rango</p>
+              <ul class="lista">
+                @for (h of historial.items(); track $index) {
+                  <li class="item">
+                    <div class="item__texto">
+                      <p class="item__titulo">{{ h.rangoAnterior ?? 'Inicio' }} → {{ h.rangoNuevo }}</p>
+                      <p class="item__detalle">{{ etiqueta(h.causa) }} · {{ fechaCorta(h.fecha) }}</p>
+                    </div>
+                    <span class="chip">{{ numero(h.puntos) }} pts</span>
+                  </li>
+                }
+              </ul>
+              <app-pie-lista [lista]="historial" vacio="Sin cambios de rango todavía." />
+            </section>
+          </div>
+        }
+      }
+
+      <!-- ========== COMPETENCIAS ========== -->
+      @if (pestana() === 'competencias') {
+        <div class="acciones barra-sup">
+          <a routerLink="/tabs/competir/competencias/nueva" class="btn-primary"><ion-icon name="add-outline"></ion-icon>&nbsp;Nueva competencia</a>
+        </div>
+
+        @if (invitaciones.items().length > 0) {
+          <h2 class="titulo-seccion">Invitaciones pendientes</h2>
+          <div class="rejilla rejilla--2">
+            @for (c of invitaciones.items(); track c.id) {
+              <article class="tarjeta tarjeta--aviso">
+                <div class="tarjeta__cabecera">
+                  <h3 class="titulo-tarjeta">{{ c.nombre }}</h3>
+                  <span class="chip chip--aviso">{{ etiqueta(c.tipo) }}</span>
+                </div>
+                <p class="texto-suave">Te invita {{ c.creador }} · {{ c.participantes.length }} participantes · Premio {{ c.premioXp }} XP</p>
+                <div class="acciones">
+                  <button type="button" class="btn-primary" [disabled]="trabajando()" (click)="aceptar(c)">Aceptar</button>
+                  <button type="button" class="btn-secundario" [disabled]="trabajando()" (click)="rechazar(c)">Rechazar</button>
+                  <a [routerLink]="['/tabs/competir/competencias', c.id]" class="btn-secundario">Ver</a>
+                </div>
+              </article>
+            }
+          </div>
+        }
+
+        <h2 class="titulo-seccion">Mis competencias</h2>
+        <div class="tarjeta">
+          <ul class="lista">
+            @for (c of competencias.items(); track c.id) {
+              <li>
+                <a [routerLink]="['/tabs/competir/competencias', c.id]" class="item item--enlace">
+                  <div class="item__texto">
+                    <p class="item__titulo">{{ c.nombre }}</p>
+                    <p class="item__detalle">{{ etiqueta(c.tipo) }} · {{ c.participantes.length }} participantes @if (c.actividad) { · {{ etiqueta(c.actividad) }} }</p>
+                  </div>
+                  <span class="chip" [class]="claseEstado(c.estado)">{{ etiqueta(c.estado) }}</span>
+                </a>
+              </li>
+            }
+          </ul>
+          <app-pie-lista [lista]="competencias" vacio="Aún no participas en competencias. ¡Crea la primera!" />
+        </div>
+      }
+
+      <!-- ========== CLAN ========== -->
+      @if (pestana() === 'clan') {
+        @if (miClan(); as mc) {
+          <section class="tarjeta tarjeta--resalte">
+            <div class="tarjeta__cabecera">
+              <h2 class="titulo-tarjeta">{{ mc.clan.nombre }}</h2>
+              <span class="chip chip--ok">{{ mc.clan.miembros }}/{{ mc.clan.capacidadMax }}</span>
+            </div>
+            <p class="texto-suave">{{ mc.clan.descripcion || 'Sin descripción.' }}</p>
+            <p class="texto-tenue">Líder: {{ mc.clan.lider }}</p>
+            <div class="acciones">
+              <a [routerLink]="['/tabs/competir/clan', mc.clan.id]" class="btn-primary">Ver mi clan</a>
+            </div>
+          </section>
+        } @else {
+          <div class="acciones barra-sup">
+            <a routerLink="/tabs/competir/clan/nuevo" class="btn-primary"><ion-icon name="add-outline"></ion-icon>&nbsp;Crear un clan</a>
+          </div>
+        }
+
+        <h2 class="titulo-seccion">Clanes activos</h2>
+        <div class="rejilla rejilla--3">
+          @for (c of clanes.items(); track c.id) {
+            <article class="tarjeta">
+              <div class="tarjeta__cabecera">
+                <h3 class="titulo-tarjeta">{{ c.nombre }}</h3>
+                <span class="chip">{{ c.miembros }}/{{ c.capacidadMax }}</span>
+              </div>
+              <p class="texto-suave">{{ c.descripcion || 'Sin descripción.' }}</p>
+              <p class="texto-tenue">Líder: {{ c.lider }}</p>
+              <div class="acciones">
+                <a [routerLink]="['/tabs/competir/clan', c.id]" class="btn-secundario">Ver</a>
+                @if (!miClan() && c.miembros < c.capacidadMax) {
+                  <button type="button" class="btn-primary" [disabled]="trabajando()" (click)="unirse(c)">Unirme</button>
+                }
+              </div>
+            </article>
+          }
+        </div>
+        <app-pie-lista [lista]="clanes" vacio="No hay clanes todavía." />
+      }
+    }
+  </div>
+</ion-content>
