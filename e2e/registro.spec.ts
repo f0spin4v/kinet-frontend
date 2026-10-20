@@ -6,7 +6,7 @@ async function llenarFormulario(page: Page, cambios: Partial<Record<string, stri
   const datos = {
     Nombres: 'Ana',
     Apellidos: 'Pérez',
-    Nickname: 'ana_fit',
+    Gamertag: 'ana_fit',
     Correo: 'ana@kinet.com',
     Contraseña: 'Segura123',
     ...cambios,
@@ -37,14 +37,14 @@ test.describe('Registro', () => {
     await test.step('Entonces paso a la evaluación de nivel', async () => {
       await expect(page).toHaveURL(/\/evaluacion$/);
     });
-    await test.step('Y el backend recibió mis datos con sus nombres de campo', async () => {
-      // El formulario dice "nickname" y "aceptaDatos"; el backend espera "gamertag" y "aceptaPolitica".
+    await test.step('Y el backend recibió mis datos', async () => {
       expect(peticiones[0].cuerpo).toEqual({
         nombres: 'Ana',
         apellidos: 'Pérez',
         correo: 'ana@kinet.com',
         contrasena: 'Segura123',
         gamertag: 'ana_fit',
+        fechaNacimiento: null,
         aceptaPolitica: true,
       });
     });
@@ -59,7 +59,7 @@ test.describe('Registro', () => {
     for (const mensaje of [
       'Escribe tus nombres.',
       'Escribe tus apellidos.',
-      'Elige un nickname.',
+      'Elige un gamertag.',
       'Escribe tu correo.',
       'Escribe una contraseña.',
       'Debes aceptar la política de tratamiento de datos.',
@@ -69,16 +69,16 @@ test.describe('Registro', () => {
     expect(peticiones).toHaveLength(0);
   });
 
-  test('valida la longitud y los caracteres del nickname', async ({ page }) => {
+  test('valida la longitud y los caracteres del gamertag', async ({ page }) => {
     await simularApi(page, {});
     await page.goto('/registro');
 
-    await llenarFormulario(page, { Nickname: 'ab' });
+    await llenarFormulario(page, { Gamertag: 'ab' });
     await crear(page).click();
-    await expect(page.getByText('El nickname debe tener entre 3 y 30 caracteres.')).toBeVisible();
+    await expect(page.getByText('El gamertag debe tener entre 3 y 30 caracteres.')).toBeVisible();
 
-    await page.getByLabel('Nickname').fill('ana fit!');
-    await expect(page.getByText('El nickname solo puede tener letras, números y guion bajo.')).toBeVisible();
+    await page.getByLabel('Gamertag').fill('ana fit!');
+    await expect(page.getByText('El gamertag solo puede tener letras, números y guion bajo.')).toBeVisible();
   });
 
   test('la contraseña necesita 8 caracteres con letra y número', async ({ page }) => {

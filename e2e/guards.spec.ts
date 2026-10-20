@@ -60,11 +60,19 @@ test.describe('Acceso a las rutas', () => {
     });
   });
 
-  test('el equipo (administrador, entrenador) entra sin hacer la evaluación', async ({ page }) => {
+  test('el equipo (administrador, entrenador) va a su panel sin hacer la evaluación', async ({ page }) => {
     await conSesion(page);
     await simularApi(page, { 'GET /usuarios/me': ok(usuario({ rol: 'ADMINISTRADOR', nivelHabilidad: null })) });
 
     await page.goto('/evaluacion');
+    await expect(page).toHaveURL(/\/staff/);
+  });
+
+  test('un jugador no puede entrar al panel del equipo', async ({ page }) => {
+    await conSesion(page);
+    await simularApi(page, { 'GET /usuarios/me': ok(usuario()) });
+
+    await page.goto('/staff');
     await expect(page).toHaveURL(/\/tabs/);
   });
 

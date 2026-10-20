@@ -24,8 +24,8 @@ test.describe('Perfil', () => {
     await enPerfil(page);
 
     await expect(page.getByText('@ana_fit')).toBeVisible();
-    await expect(page.getByText('INTERMEDIO')).toBeVisible();
-    await expect(page.getByText('ana@kinet.com')).toBeVisible();
+    await expect(page.locator('.hero__nivel')).toHaveText('Intermedio');
+    await expect(page.locator('.kv', { hasText: 'Correo' })).toContainText('ana@kinet.com');
   });
 
   test('el tema elegido se aplica y se mantiene al recargar', async ({ page }) => {
@@ -94,7 +94,7 @@ test.describe('Editar perfil', () => {
 
     await expect(page.getByLabel('Nombres')).toHaveValue('Ana');
     await expect(page.getByLabel('Apellidos')).toHaveValue('Pérez');
-    await expect(page.getByLabel('Nickname')).toHaveValue('ana_fit');
+    await expect(page.getByLabel('Gamertag')).toHaveValue('ana_fit');
     await expect(page.getByLabel('Fecha de nacimiento')).toHaveValue('2000-05-10');
     await expect(guardar(page)).toBeDisabled();
   });
@@ -106,7 +106,7 @@ test.describe('Editar perfil', () => {
     await irAEditar(page);
 
     await page.getByLabel('Nombres').fill('  María ');
-    await page.getByLabel('Nickname').fill('maria_fit');
+    await page.getByLabel('Gamertag').fill('maria_fit');
     await guardar(page).click();
 
     await expect(page).toHaveURL(/\/tabs\/perfil$/);
@@ -123,17 +123,17 @@ test.describe('Editar perfil', () => {
     });
   });
 
-  test('valida nombres, nickname y fecha de nacimiento', async ({ page }) => {
+  test('valida nombres, gamertag y fecha de nacimiento', async ({ page }) => {
     const peticiones = await enPerfil(page);
     await irAEditar(page);
 
     await page.getByLabel('Nombres').fill('');
-    await page.getByLabel('Nickname').fill('ana fit');
+    await page.getByLabel('Gamertag').fill('ana fit');
     await page.getByLabel('Fecha de nacimiento').fill('2099-01-01');
     await guardar(page).click();
 
     await expect(page.getByText('Escribe tus nombres.')).toBeVisible();
-    await expect(page.getByText('El nickname solo puede tener letras, números y guion bajo.')).toBeVisible();
+    await expect(page.getByText('El gamertag solo puede tener letras, números y guion bajo.')).toBeVisible();
     await expect(page.getByText('La fecha de nacimiento debe ser anterior a hoy.')).toBeVisible();
     expect(peticiones.some(p => p.metodo === 'PUT')).toBe(false);
   });
@@ -142,7 +142,7 @@ test.describe('Editar perfil', () => {
     await enPerfil(page, { 'PUT /usuarios/me': fallo(409, 'El gamertag ya está en uso.') });
     await irAEditar(page);
 
-    await page.getByLabel('Nickname').fill('ocupado');
+    await page.getByLabel('Gamertag').fill('ocupado');
     await guardar(page).click();
 
     await expect(page.getByRole('alert')).toHaveText('El gamertag ya está en uso.');

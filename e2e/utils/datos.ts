@@ -50,4 +50,11 @@ export const PREGUNTAS = [1, 2, 3].map(orden => ({
   ],
 }));
 
-export const RESULTADO_EVALUACION = { nivelHabilidad: 'INTERMEDIO', fecha: '2026-10-19T12:00:00' };
+export const RESULTADO_EVALUACION = {
+  id: 1,
+  nivelHabilidad: 'INTERMEDIO',
+  votos: { INTERMEDIO: 2, AVANZADO: 1 },
+  versionAlgoritmo: 'VOTO_PONDERADO_V1',
+  fecha: '2026-10-19T12:00:00',
+  puedeRepetirDesde: '2026-11-18T12:00:00',
+};
