@@ -9,6 +9,10 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
+    "e2e": "playwright test --grep @principal --project=visual --workers=1",
+    "e2e:todas": "playwright test --project=escritorio --project=movil",
+    "e2e:ui": "playwright test --ui",
+    "e2e:reporte": "playwright show-report",
     "lint": "ng lint"
   },
   "private": true,
@@ -40,6 +44,7 @@
     "@angular/language-service": "22.1.7",
     "@capacitor/cli": "8.5.3",
     "@ionic/angular-toolkit": "^13.0.0",
+    "@playwright/test": "^1.64.1",
     "angular-eslint": "22.5.0",
     "eslint": "^10.10.0",
     "jsdom": "^30.1.1",
