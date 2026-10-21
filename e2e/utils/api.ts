@@ -1,30 +1,28 @@
-import { Page, Request, Route } from '@playwright/test';
+import { Page, Request } from '@playwright/test';
 
-/** Respuesta simulada: código HTTP y cuerpo ya envuelto como lo envía el backend. */
-export interface RespuestaSimulada {
-  status: number;
-  body?: unknown;
-  /** Si es true, la petición falla sin respuesta (como un servidor caído). */
-  sinConexion?: boolean;
+/** Lo que responde un endpoint simulado: un estado HTTP con cuerpo, o una caída de red. */
+export type Respuesta = { status: number; cuerpo?: unknown } | typeof sinConexion;
+type Simulacion = Respuesta | ((peticion: Request) => Respuesta);
+
+/** Una petición que la app le hizo a la API durante la prueba. */
+export interface PeticionRecibida {
+  clave: string;
+  cuerpo: unknown;
+  token: string | null;
 }
 
-/** Algo que responde una petición: una respuesta fija o una función que la calcula. */
-export type Manejador = RespuestaSimulada | ((peticion: Request) => RespuestaSimulada);
-
-/** Clave: "MÉTODO /ruta" relativa a /api, por ejemplo "POST /auth/login" o "GET /usuarios/me". */
-export type RutasSimuladas = Record<string, Manejador>;
-
-/** Respuesta exitosa con la envoltura { error, respuesta } del backend (ResponseDTO). */
-export function ok(respuesta: unknown, status = 200): RespuestaSimulada {
-  return { status, body: { error: false, respuesta } };
+/** Respuesta correcta con el formato del backend: { error: false, respuesta }. */
+export function ok(datos: unknown, status = 200): Respuesta {
+  return { status, cuerpo: { error: false, respuesta: datos } };
 }
 
-/** Respuesta de error: el mensaje puede ser texto o una lista de { campo, mensaje } (ValidacionDTO). */
-export function fallo(status: number, respuesta: string | { campo: string; mensaje: string }[]): RespuestaSimulada {
-  return { status, body: { error: true, respuesta } };
+/** Respuesta de error con el formato del backend: { error: true, respuesta: "mensaje" | [{ campo, mensaje }] }. */
+export function fallo(status: number, mensaje: string | { campo: string; mensaje: string }[]): Respuesta {
+  return { status, cuerpo: { error: true, respuesta: mensaje } };
 }
 
-export const sinConexion: RespuestaSimulada = { status: 0, sinConexion: true };
+/** El servidor no responde (sin internet o backend caído). */
+export const sinConexion = 'sin-conexion' as const;
 
 const CORS = {
   'access-control-allow-origin': '*',
@@ -32,60 +30,46 @@ const CORS = {
   'access-control-allow-methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
 };
 
-/** Peticiones a la API que recibió el servidor simulado, para verificarlas en las pruebas. */
-export interface Registro {
-  metodo: string;
-  ruta: string;
-  cuerpo: unknown;
-  autorizacion: string | null;
-}
-
 /**
- * Intercepta todas las llamadas a /api/ y las responde según "rutas". Lo que no esté definido
- * responde 404, para que una llamada inesperada se note en la prueba. Devuelve la lista de
- * peticiones recibidas (se va llenando mientras corre la prueba).
+ * Intercepta las llamadas a /api/... y responde lo definido en `rutas`.
+ * La clave es "MÉTODO /ruta" sin el /api ni los parámetros, por ejemplo "POST /auth/login".
+ * Una ruta no definida responde 404 con "Sin simular: ...". Devuelve la lista de peticiones recibidas.
  */
-export async function simularApi(page: Page, rutas: RutasSimuladas): Promise<Registro[]> {
-  const registro: Registro[] = [];
+export async function simularApi(page: Page, rutas: Record<string, Simulacion>): Promise<PeticionRecibida[]> {
+  const recibidas: PeticionRecibida[] = [];
 
-  await page.route('**/api/**', async (route: Route) => {
+  await page.route(/\/api\//, async route => {
     const peticion = route.request();
-    const metodo = peticion.method();
-
-    if (metodo === 'OPTIONS') {
+    if (peticion.method() === 'OPTIONS') {
       await route.fulfill({ status: 204, headers: CORS });
       return;
     }
 
-    const ruta = new URL(peticion.url()).pathname.replace(/^.*\/api/, '');
-    registro.push({
-      metodo,
-      ruta,
-      cuerpo: leerCuerpo(peticion),
-      autorizacion: (await peticion.allHeaders())['authorization'] ?? null,
+    const ruta = new URL(peticion.url()).pathname.replace(/^.*?\/api/, '');
+    const clave = `${peticion.method()} ${ruta}`;
+    const autorizacion = peticion.headers()['authorization'] ?? null;
+    recibidas.push({
+      clave,
+      cuerpo: peticion.postDataJSON?.() ?? null,
+      token: autorizacion ? autorizacion.replace(/^Bearer /, '') : null,
     });
 
-    const manejador = rutas[`${metodo} ${ruta}`];
-    const respuesta = typeof manejador === 'function' ? manejador(peticion) : manejador;
+    const simulacion = rutas[clave];
+    const respuesta = typeof simulacion === 'function' ? simulacion(peticion) : simulacion;
 
     if (!respuesta) {
-      await route.fulfill({ status: 404, headers: CORS, json: { error: true, respuesta: `Sin simular: ${metodo} ${ruta}` } });
-      return;
+      await route.fulfill({ status: 404, headers: CORS, json: { error: true, respuesta: `Sin simular: ${clave}` } });
+    } else if (respuesta === sinConexion) {
+      await route.abort('internetdisconnected');
+    } else {
+      await route.fulfill({ status: respuesta.status, headers: CORS, json: respuesta.cuerpo ?? null });
     }
-    if (respuesta.sinConexion) {
-      await route.abort('connectionrefused');
-      return;
-    }
-    await route.fulfill({ status: respuesta.status, headers: CORS, json: respuesta.body ?? null });
   });
 
-  return registro;
+  return recibidas;
 }
 
-function leerCuerpo(peticion: Request): unknown {
-  try {
-    return peticion.postDataJSON();
-  } catch {
-    return peticion.postData();
-  }
+/** Atajo: la última petición recibida con esa clave. */
+export function ultima(recibidas: PeticionRecibida[], clave: string): PeticionRecibida | undefined {
+  return [...recibidas].reverse().find(p => p.clave === clave);
 }

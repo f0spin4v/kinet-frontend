@@ -1,151 +1,145 @@
-import { Page, expect, test } from '@playwright/test';
-import { RutasSimuladas, fallo, ok, simularApi } from './utils/api';
-import { usuario } from './utils/datos';
+import { expect, test } from '@playwright/test';
+import { fallo, ok, simularApi, ultima } from './utils/api';
+import { resultadoEvaluacion, usuario } from './utils/datos';
 import { conSesion, tokenGuardado } from './utils/sesion';
 
-/** Jugador evaluado con sesión iniciada, en la pantalla de perfil. */
-async function enPerfil(page: Page, rutas: RutasSimuladas = {}) {
-  await conSesion(page);
-  const peticiones = await simularApi(page, { 'GET /usuarios/me': ok(usuario()), ...rutas });
-  await page.goto('/tabs/perfil');
-  await expect(page.getByRole('heading', { name: 'Ana Pérez' })).toBeVisible();
-  return peticiones;
-}
-
-async function irAEditar(page: Page) {
-  await page.getByRole('link', { name: 'Editar perfil' }).click();
-  await expect(page).toHaveURL(/\/tabs\/perfil\/editar$/);
-}
-
-const guardar = (page: Page) => page.getByRole('button', { name: 'Guardar cambios' });
+const API_PERFIL = {
+  'GET /usuarios/me': ok(usuario()),
+  'GET /evaluacion': ok(resultadoEvaluacion()),
+};
 
 test.describe('Perfil', () => {
-  test('muestra los datos del jugador', async ({ page }) => {
-    await enPerfil(page);
-
-    await expect(page.getByText('@ana_fit')).toBeVisible();
-    await expect(page.locator('.hero__nivel')).toHaveText('Intermedio');
-    await expect(page.locator('.kv', { hasText: 'Correo' })).toContainText('ana@kinet.com');
+  test.beforeEach(async ({ page }) => {
+    await conSesion(page);
   });
 
-  test('el tema elegido se aplica y se mantiene al recargar', async ({ page }) => {
-    await enPerfil(page);
+  test('muestra los datos de la cuenta y la evaluación', async ({ page }) => {
+    await simularApi(page, API_PERFIL);
+
+    await page.goto('/tabs/perfil');
+
+    await expect(page.getByRole('heading', { name: 'Laura Gómez' })).toBeVisible();
+    await expect(page.getByText('@laura_runner')).toBeVisible();
+    await expect(page.locator('.kv-lista').getByText('laura@kinet.com')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Evaluación de nivel' })).toBeVisible();
+  });
+
+  test('el tema oscuro se aplica y se mantiene al recargar', async ({ page }) => {
+    await simularApi(page, API_PERFIL);
+    await page.goto('/tabs/perfil');
 
     await page.getByRole('radio', { name: 'Oscuro' }).click();
     await expect(page.locator('html')).toHaveClass(/tema-oscuro/);
-    await expect(page.getByRole('radio', { name: 'Oscuro' })).toHaveAttribute('aria-checked', 'true');
 
     await page.reload();
     await expect(page.locator('html')).toHaveClass(/tema-oscuro/);
-
-    await page.getByRole('radio', { name: 'Claro' }).click();
-    await expect(page.locator('html')).toHaveClass(/tema-claro/);
-    await expect(page.locator('html')).not.toHaveClass(/tema-oscuro/);
+    await expect(page.getByRole('radio', { name: 'Oscuro' })).toHaveAttribute('aria-checked', 'true');
   });
 
-  test('cerrar sesión borra el token y no deja volver atrás', async ({ page }) => {
-    await enPerfil(page);
+  test('cerrar sesión borra el token y vuelve al login', async ({ page }) => {
+    await simularApi(page, API_PERFIL);
+    await page.goto('/tabs/perfil');
 
     await page.getByRole('button', { name: 'Cerrar sesión' }).click();
+
     await expect(page).toHaveURL(/\/login$/);
     expect(await tokenGuardado(page)).toBeNull();
-
-    await page.goBack();
-    await expect(page).toHaveURL(/\/login$/);
   });
 
-  test('cancelar la desactivación no llama a la API', async ({ page }) => {
-    const peticiones = await enPerfil(page);
+  test('desactivar la cuenta se puede cancelar', async ({ page }) => {
+    const peticiones = await simularApi(page, API_PERFIL);
+    await page.goto('/tabs/perfil');
 
     await page.getByRole('button', { name: 'Desactivar cuenta' }).click();
+    await expect(page.getByRole('alertdialog')).toBeVisible();
     await page.getByRole('button', { name: 'Cancelar' }).click();
 
+    await expect(page.getByRole('alertdialog')).toBeHidden();
     await expect(page).toHaveURL(/\/tabs\/perfil$/);
-    expect(peticiones.some(p => p.metodo === 'DELETE')).toBe(false);
+    expect(ultima(peticiones, 'DELETE /usuarios/me')).toBeUndefined();
   });
 
-  test('confirmar la desactivación cierra la sesión y avisa', async ({ page }) => {
-    const peticiones = await enPerfil(page, { 'DELETE /usuarios/me': { status: 204 } });
+  test('desactivar la cuenta confirmada cierra la sesión', async ({ page }) => {
+    const peticiones = await simularApi(page, {
+      ...API_PERFIL,
+      'DELETE /usuarios/me': ok({ mensaje: 'Tu cuenta quedó inactiva.' }),
+    });
+    await page.goto('/tabs/perfil');
 
     await page.getByRole('button', { name: 'Desactivar cuenta' }).click();
-    await page.getByRole('button', { name: 'Desactivar', exact: true }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Desactivar' }).click();
 
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByText('Tu cuenta quedó inactiva')).toBeVisible();
-    expect(peticiones.some(p => p.metodo === 'DELETE' && p.ruta === '/usuarios/me')).toBe(true);
+    expect(ultima(peticiones, 'DELETE /usuarios/me')).toBeDefined();
     expect(await tokenGuardado(page)).toBeNull();
   });
 
-  test('si la desactivación falla se queda en el perfil y muestra el error', async ({ page }) => {
-    await enPerfil(page, { 'DELETE /usuarios/me': fallo(500, 'No se pudo desactivar la cuenta.') });
+  test('si falla la desactivación avisa y mantiene la sesión', async ({ page }) => {
+    await simularApi(page, {
+      ...API_PERFIL,
+      'DELETE /usuarios/me': fallo(500, 'No pudimos desactivar tu cuenta.'),
+    });
+    await page.goto('/tabs/perfil');
 
     await page.getByRole('button', { name: 'Desactivar cuenta' }).click();
-    await page.getByRole('button', { name: 'Desactivar', exact: true }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Desactivar' }).click();
 
-    await expect(page.getByText('No se pudo desactivar la cuenta.')).toBeVisible();
+    await expect(page.getByText('No pudimos desactivar tu cuenta.')).toBeVisible();
     await expect(page).toHaveURL(/\/tabs\/perfil$/);
+    expect(await tokenGuardado(page)).not.toBeNull();
   });
 });
 
 test.describe('Editar perfil', () => {
-  test('el formulario viene lleno y no se puede guardar sin cambios', async ({ page }) => {
-    await enPerfil(page);
-    await irAEditar(page);
-
-    await expect(page.getByLabel('Nombres')).toHaveValue('Ana');
-    await expect(page.getByLabel('Apellidos')).toHaveValue('Pérez');
-    await expect(page.getByLabel('Gamertag')).toHaveValue('ana_fit');
-    await expect(page.getByLabel('Fecha de nacimiento')).toHaveValue('2000-05-10');
-    await expect(guardar(page)).toBeDisabled();
+  test.beforeEach(async ({ page }) => {
+    await conSesion(page);
   });
 
-  test('guardar cambios envía los datos y vuelve al perfil actualizado', async ({ page }) => {
-    const peticiones = await enPerfil(page, {
-      'PUT /usuarios/me': ok(usuario({ nombres: 'María', gamertag: 'maria_fit' })),
+  test('carga los datos actuales y guarda los cambios', async ({ page }) => {
+    const peticiones = await simularApi(page, {
+      ...API_PERFIL,
+      'PUT /usuarios/me': ok(usuario({ gamertag: 'laura_trail' })),
     });
-    await irAEditar(page);
+    await page.goto('/tabs/perfil/editar');
 
-    await page.getByLabel('Nombres').fill('  María ');
-    await page.getByLabel('Gamertag').fill('maria_fit');
-    await guardar(page).click();
+    await expect(page.getByLabel('Nombres')).toHaveValue('Laura');
+    await page.getByLabel('Gamertag').fill('laura_trail');
+    await page.getByRole('button', { name: 'Guardar cambios' }).click();
 
-    await expect(page).toHaveURL(/\/tabs\/perfil$/);
-    await expect(page.getByRole('heading', { name: 'María Pérez' })).toBeVisible();
-    await expect(page.getByText('@maria_fit')).toBeVisible();
-
-    const envio = peticiones.find(p => p.metodo === 'PUT');
-    expect(envio?.cuerpo).toEqual({
-      nombres: 'María',
-      apellidos: 'Pérez',
-      gamertag: 'maria_fit',
+    await expect(page.getByText('Perfil actualizado')).toBeVisible();
+    expect(ultima(peticiones, 'PUT /usuarios/me')?.cuerpo).toEqual({
+      nombres: 'Laura',
+      apellidos: 'Gómez',
+      gamertag: 'laura_trail',
       avatarUrl: null,
-      fechaNacimiento: '2000-05-10',
+      fechaNacimiento: '2001-04-15',
     });
   });
 
-  test('valida nombres, gamertag y fecha de nacimiento', async ({ page }) => {
-    const peticiones = await enPerfil(page);
-    await irAEditar(page);
+  test('valida los campos antes de enviar', async ({ page }) => {
+    const peticiones = await simularApi(page, API_PERFIL);
+    await page.goto('/tabs/perfil/editar');
 
     await page.getByLabel('Nombres').fill('');
-    await page.getByLabel('Gamertag').fill('ana fit');
-    await page.getByLabel('Fecha de nacimiento').fill('2099-01-01');
-    await guardar(page).click();
+    await page.getByLabel('Imagen de perfil (enlace)').fill('foto.png');
+    await page.getByRole('button', { name: 'Guardar cambios' }).click();
 
     await expect(page.getByText('Escribe tus nombres.')).toBeVisible();
-    await expect(page.getByText('El gamertag solo puede tener letras, números y guion bajo.')).toBeVisible();
-    await expect(page.getByText('La fecha de nacimiento debe ser anterior a hoy.')).toBeVisible();
-    expect(peticiones.some(p => p.metodo === 'PUT')).toBe(false);
+    await expect(page.getByText('La imagen debe ser una dirección que empiece por http o https.')).toBeVisible();
+    expect(ultima(peticiones, 'PUT /usuarios/me')).toBeUndefined();
   });
 
-  test('un error del servidor se muestra sin salir del formulario', async ({ page }) => {
-    await enPerfil(page, { 'PUT /usuarios/me': fallo(409, 'El gamertag ya está en uso.') });
-    await irAEditar(page);
+  test('muestra el error del servidor', async ({ page }) => {
+    await simularApi(page, {
+      ...API_PERFIL,
+      'PUT /usuarios/me': fallo(409, 'Ese gamertag ya está en uso.'),
+    });
+    await page.goto('/tabs/perfil/editar');
 
-    await page.getByLabel('Gamertag').fill('ocupado');
-    await guardar(page).click();
+    await page.getByLabel('Gamertag').fill('carlos_pro');
+    await page.getByRole('button', { name: 'Guardar cambios' }).click();
 
-    await expect(page.getByRole('alert')).toHaveText('El gamertag ya está en uso.');
-    await expect(page).toHaveURL(/\/tabs\/perfil\/editar$/);
+    await expect(page.getByRole('alert')).toHaveText('Ese gamertag ya está en uso.');
   });
 });

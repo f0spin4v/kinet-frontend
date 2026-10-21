@@ -1,31 +1,27 @@
 import { Page } from '@playwright/test';
-import { TOKEN } from './datos';
 
-/**
- * En el navegador, Capacitor Preferences guarda en localStorage con el prefijo "CapacitorStorage.".
- * Ver TOKEN_KEY en src/app/core/services/auth.ts y TEMA_KEY en tema.ts.
- */
+/** Así guarda Capacitor Preferences el token en el navegador. */
 export const CLAVE_TOKEN = 'CapacitorStorage.kinet_token';
-export const CLAVE_TEMA = 'CapacitorStorage.kinet_tema';
+export const TOKEN_DE_PRUEBA = 'token-de-prueba';
 
 /**
- * Deja un token guardado antes de que cargue la app, como si el usuario ya hubiera iniciado sesión.
- * La prueba debe simular "GET /usuarios/me", que AuthService.cargarSesion llama al arrancar.
- * Solo se escribe una vez por pestaña: así cerrar sesión y recargar no lo vuelve a poner.
+ * Deja un token guardado antes de abrir la app, como si el usuario ya hubiera iniciado sesión.
+ * Solo lo pone en la primera carga de la pestaña, para que cerrar sesión y recargar funcione igual que en la app real.
+ * Hay que simular también GET /usuarios/me.
  */
-export async function conSesion(page: Page, token = TOKEN): Promise<void> {
-  await page.addInitScript(([clave, valor]) => {
-    try {
-      if (!sessionStorage.getItem('e2e-sesion-puesta')) {
+export async function conSesion(page: Page, token = TOKEN_DE_PRUEBA): Promise<void> {
+  await page.addInitScript(
+    ([clave, valor]) => {
+      if (!sessionStorage.getItem('e2e-sesion')) {
         localStorage.setItem(clave, valor);
-        sessionStorage.setItem('e2e-sesion-puesta', '1');
+        sessionStorage.setItem('e2e-sesion', '1');
       }
-    } catch {
-      // about:blank no tiene almacenamiento; se escribe en la siguiente página.
-    }
-  }, [CLAVE_TOKEN, token]);
+    },
+    [CLAVE_TOKEN, token],
+  );
 }
 
-export async function tokenGuardado(page: Page): Promise<string | null> {
+/** El token guardado en el navegador, o null si no hay sesión. */
+export function tokenGuardado(page: Page): Promise<string | null> {
   return page.evaluate(clave => localStorage.getItem(clave), CLAVE_TOKEN);
 }

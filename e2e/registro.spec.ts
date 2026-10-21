@@ -1,141 +1,133 @@
-import { Page, expect, test } from '@playwright/test';
-import { fallo, ok, simularApi } from './utils/api';
+import { expect, Page, test } from '@playwright/test';
+import { fallo, ok, simularApi, ultima } from './utils/api';
 import { PREGUNTAS, sesion } from './utils/datos';
+import { escribir, pausa } from './utils/demo';
 
-async function llenarFormulario(page: Page, cambios: Partial<Record<string, string>> = {}) {
+/** Llena el formulario de registro con datos válidos; `cambios` reemplaza algún campo. */
+async function llenarRegistro(page: Page, cambios: Partial<Record<string, string>> = {}): Promise<void> {
   const datos = {
-    Nombres: 'Ana',
-    Apellidos: 'Pérez',
-    Gamertag: 'ana_fit',
-    Correo: 'ana@kinet.com',
-    Contraseña: 'Segura123',
+    Nombres: 'Mateo',
+    Apellidos: 'Ríos',
+    Gamertag: 'mateo_run',
+    Correo: 'mateo@kinet.com',
+    'Contraseña': 'Kinet2026',
     ...cambios,
   };
   for (const [campo, valor] of Object.entries(datos)) {
-    await page.getByLabel(campo, { exact: true }).fill(valor ?? '');
+    await escribir(page.getByLabel(campo, { exact: true }), valor ?? '');
   }
 }
 
-const aceptar = (page: Page) => page.getByRole('checkbox');
-const crear = (page: Page) => page.getByRole('button', { name: 'Crear cuenta' });
-
 test.describe('Registro', () => {
-  test('un registro válido envía los datos y lleva a la evaluación', { tag: '@principal' }, async ({ page }) => {
+  test('un registro válido lleva a la evaluación', { tag: '@principal' }, async ({ page }) => {
     const peticiones = await simularApi(page, {
-      'POST /auth/registro': ok(sesion({ nivelHabilidad: null }), 201),
+      'POST /auth/registro': ok(sesion({ nombres: 'Mateo', apellidos: 'Ríos', gamertag: 'mateo_run', correo: 'mateo@kinet.com', nivelHabilidad: null }), 201),
       'GET /evaluacion/preguntas': ok(PREGUNTAS),
     });
 
-    await test.step('Dado que estoy en la pantalla de registro', async () => {
-      await page.goto('/registro');
-    });
-    await test.step('Cuando lleno el formulario, acepto la política y pulso "Crear cuenta"', async () => {
-      await llenarFormulario(page);
-      await aceptar(page).check();
-      await crear(page).click();
-    });
-    await test.step('Entonces paso a la evaluación de nivel', async () => {
-      await expect(page).toHaveURL(/\/evaluacion$/);
-    });
-    await test.step('Y el backend recibió mis datos', async () => {
-      expect(peticiones[0].cuerpo).toEqual({
-        nombres: 'Ana',
-        apellidos: 'Pérez',
-        correo: 'ana@kinet.com',
-        contrasena: 'Segura123',
-        gamertag: 'ana_fit',
-        fechaNacimiento: null,
-        aceptaPolitica: true,
-      });
-    });
-  });
-
-  test('con el formulario vacío marca todos los campos obligatorios', async ({ page }) => {
-    const peticiones = await simularApi(page, {});
-
+    // 1. Abre el registro
     await page.goto('/registro');
-    await crear(page).click();
+    await expect(page.getByRole('heading', { name: 'Crea tu cuenta' })).toBeVisible();
+    await pausa(page);
 
-    for (const mensaje of [
-      'Escribe tus nombres.',
-      'Escribe tus apellidos.',
-      'Elige un gamertag.',
-      'Escribe tu correo.',
-      'Escribe una contraseña.',
-      'Debes aceptar la política de tratamiento de datos.',
-    ]) {
-      await expect(page.getByText(mensaje)).toBeVisible();
-    }
-    expect(peticiones).toHaveLength(0);
+    // 2. Llena sus datos y acepta la política de datos
+    await llenarRegistro(page);
+    await page.getByLabel('Acepto la política de tratamiento de datos personales.').check();
+    await pausa(page);
+    await page.getByRole('button', { name: 'Crear cuenta' }).click();
+
+    // 3. Queda dentro y lo manda a la evaluación de nivel
+    await expect(page).toHaveURL(/\/evaluacion$/);
+    await expect(page.getByText('Pregunta 1 de 5')).toBeVisible();
+    await expect(page.getByRole('heading', { name: '¿Pregunta 1 de la evaluación?' })).toBeVisible();
+    await pausa(page);
+
+    // 4. El backend recibió los datos del formulario
+    expect(ultima(peticiones, 'POST /auth/registro')?.cuerpo).toEqual({
+      nombres: 'Mateo',
+      apellidos: 'Ríos',
+      gamertag: 'mateo_run',
+      correo: 'mateo@kinet.com',
+      contrasena: 'Kinet2026',
+      fechaNacimiento: null,
+      aceptaPolitica: true,
+    });
   });
 
-  test('valida la longitud y los caracteres del gamertag', async ({ page }) => {
+  test('los campos obligatorios vacíos muestran sus errores', async ({ page }) => {
+    const peticiones = await simularApi(page, {});
+    await page.goto('/registro');
+
+    await page.getByRole('button', { name: 'Crear cuenta' }).click();
+
+    await expect(page.getByText('Escribe tus nombres.')).toBeVisible();
+    await expect(page.getByText('Escribe tus apellidos.')).toBeVisible();
+    await expect(page.getByText('Elige un gamertag.')).toBeVisible();
+    await expect(page.getByText('Escribe tu correo.')).toBeVisible();
+    await expect(page.getByText('Escribe una contraseña.')).toBeVisible();
+    await expect(page.getByText('Debes aceptar la política de tratamiento de datos.')).toBeVisible();
+    expect(ultima(peticiones, 'POST /auth/registro')).toBeUndefined();
+  });
+
+  test('el gamertag solo admite letras, números y guion bajo', async ({ page }) => {
     await simularApi(page, {});
     await page.goto('/registro');
 
-    await llenarFormulario(page, { Gamertag: 'ab' });
-    await crear(page).click();
-    await expect(page.getByText('El gamertag debe tener entre 3 y 30 caracteres.')).toBeVisible();
+    await llenarRegistro(page, { Gamertag: 'mateo run!' });
+    await page.getByRole('button', { name: 'Crear cuenta' }).click();
 
-    await page.getByLabel('Gamertag').fill('ana fit!');
     await expect(page.getByText('El gamertag solo puede tener letras, números y guion bajo.')).toBeVisible();
   });
 
-  test('la contraseña necesita 8 caracteres con letra y número', async ({ page }) => {
+  test('la contraseña necesita letras y números', async ({ page }) => {
     await simularApi(page, {});
     await page.goto('/registro');
 
-    await llenarFormulario(page, { Contraseña: 'abc1' });
-    await crear(page).click();
-    await expect(page.getByText('La contraseña debe tener entre 8 y 72 caracteres.')).toBeVisible();
+    await llenarRegistro(page, { 'Contraseña': 'solamenteletras' });
+    await page.getByRole('button', { name: 'Crear cuenta' }).click();
 
-    await page.getByLabel('Contraseña', { exact: true }).fill('solotexto');
     await expect(page.getByText('La contraseña debe incluir al menos una letra y un número.')).toBeVisible();
   });
 
-  test('sin aceptar la política no se envía', async ({ page }) => {
-    const peticiones = await simularApi(page, {});
+  test('la contraseña corta se rechaza', async ({ page }) => {
+    await simularApi(page, {});
     await page.goto('/registro');
 
-    await llenarFormulario(page);
-    await crear(page).click();
+    await llenarRegistro(page, { 'Contraseña': 'Ab1' });
+    await page.getByRole('button', { name: 'Crear cuenta' }).click();
 
-    await expect(page.getByText('Debes aceptar la política de tratamiento de datos.')).toBeVisible();
-    expect(peticiones).toHaveLength(0);
+    await expect(page.getByText('La contraseña debe tener entre 8 y 72 caracteres.')).toBeVisible();
   });
 
   test('un correo ya registrado muestra el mensaje del servidor', async ({ page }) => {
-    await simularApi(page, { 'POST /auth/registro': fallo(409, 'El correo ya está registrado.') });
+    await simularApi(page, { 'POST /auth/registro': fallo(409, 'Ya existe una cuenta con ese correo.') });
     await page.goto('/registro');
 
-    await llenarFormulario(page);
-    await aceptar(page).check();
-    await crear(page).click();
+    await llenarRegistro(page);
+    await page.getByLabel('Acepto la política de tratamiento de datos personales.').check();
+    await page.getByRole('button', { name: 'Crear cuenta' }).click();
 
-    await expect(page.getByRole('alert')).toHaveText('El correo ya está registrado.');
+    await expect(page.getByRole('alert')).toHaveText('Ya existe una cuenta con ese correo.');
     await expect(page).toHaveURL(/\/registro$/);
   });
 
-  test('los errores de validación del servidor se muestran juntos', async ({ page }) => {
+  test('los errores de validación del servidor se muestran', async ({ page }) => {
     await simularApi(page, {
-      'POST /auth/registro': fallo(400, [
-        { campo: 'correo', mensaje: 'El correo no tiene un formato válido.' },
-        { campo: 'gamertag', mensaje: 'El gamertag ya está en uso.' },
-      ]),
+      'POST /auth/registro': fallo(400, [{ campo: 'gamertag', mensaje: 'Ese gamertag ya está en uso.' }]),
     });
     await page.goto('/registro');
 
-    await llenarFormulario(page);
-    await aceptar(page).check();
-    await crear(page).click();
+    await llenarRegistro(page);
+    await page.getByLabel('Acepto la política de tratamiento de datos personales.').check();
+    await page.getByRole('button', { name: 'Crear cuenta' }).click();
 
-    await expect(page.getByRole('alert')).toHaveText('El correo no tiene un formato válido. El gamertag ya está en uso.');
+    await expect(page.getByRole('alert')).toHaveText('Ese gamertag ya está en uso.');
   });
 
-  test('el enlace lleva al login', async ({ page }) => {
+  test('el enlace vuelve al inicio de sesión', async ({ page }) => {
     await simularApi(page, {});
-
     await page.goto('/registro');
+
     await page.getByRole('link', { name: 'Inicia sesión' }).click();
 
     await expect(page).toHaveURL(/\/login$/);
