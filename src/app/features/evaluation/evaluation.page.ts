@@ -87,6 +87,8 @@ export class EvaluationPage {
   }
 
   anterior(): void {
+    // Mientras se registra un toque (200 ms) no se cambia de pregunta: la respuesta quedaría en la pregunta equivocada.
+    if (this.seleccion() !== null) return;
     if (this.indice() > 0) this.indice.update(i => i - 1);
   }
 

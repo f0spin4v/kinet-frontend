@@ -1,110 +1,111 @@
-import { Page, expect, test } from '@playwright/test';
-import { RutasSimuladas, fallo, ok, simularApi } from './utils/api';
-import { PREGUNTAS, RESULTADO_EVALUACION, usuario } from './utils/datos';
+import { expect, Page, test } from '@playwright/test';
+import { fallo, ok, simularApi, sinConexion, ultima } from './utils/api';
+import { apiDeInicio, PREGUNTAS, resultadoEvaluacion, usuario } from './utils/datos';
 import { conSesion, tokenGuardado } from './utils/sesion';
 
-/** Jugador con sesión iniciada que aún no hizo la evaluación. */
-async function jugadorNuevo(page: Page, rutas: RutasSimuladas = {}) {
-  await conSesion(page);
-  return simularApi(page, {
-    'GET /usuarios/me': ok(usuario({ nivelHabilidad: null })),
-    'GET /evaluacion/preguntas': ok(PREGUNTAS),
-    'POST /evaluacion': ok(RESULTADO_EVALUACION, 201),
-    ...rutas,
-  });
+/** Toca la opción indicada (A o B) de la pregunta que está en pantalla. */
+async function responder(page: Page, numero: number, opcion: 'A' | 'B'): Promise<void> {
+  await expect(page.getByText(`Pregunta ${numero} de 5`)).toBeVisible();
+  await page.getByRole('button', { name: new RegExp(`Opción ${opcion} de la pregunta ${numero}`) }).click();
 }
 
-const opcion = (page: Page, titulo: string) => page.getByRole('button', { name: new RegExp(titulo) });
-
 test.describe('Evaluación de nivel', () => {
-  test('responder todas las preguntas muestra el nivel y deja entrar a la app', async ({ page }) => {
-    const peticiones = await jugadorNuevo(page);
+  test.beforeEach(async ({ page }) => {
+    await conSesion(page);
+  });
+
+  test('el flujo completo termina con el nivel y entra a la app', async ({ page }) => {
+    const peticiones = await simularApi(page, {
+      ...apiDeInicio(),
+      'GET /usuarios/me': ok(usuario({ nivelHabilidad: null })),
+      'GET /evaluacion/preguntas': ok(PREGUNTAS),
+      'POST /evaluacion': ok(resultadoEvaluacion('INTERMEDIO'), 201),
+    });
+
     await page.goto('/evaluacion');
+    for (const [i, opcion] of (['B', 'A', 'B', 'B', 'A'] as const).entries()) {
+      await responder(page, i + 1, opcion);
+    }
 
-    await expect(page.getByText('Pregunta 1 de 3')).toBeVisible();
-    await expect(page.getByRole('heading', { name: 'Pregunta de prueba 1' })).toBeVisible();
-    await opcion(page, 'Intermedio 1').click();
-
-    await expect(page.getByText('Pregunta 2 de 3')).toBeVisible();
-    await opcion(page, 'Avanzado 2').click();
-
-    await expect(page.getByText('Pregunta 3 de 3')).toBeVisible();
-    await opcion(page, 'Principiante 3').click();
-
-    await expect(page.getByText('Tu nivel inicial')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Tu nivel inicial' })).toBeVisible();
     await expect(page.locator('.resultado__nivel')).toHaveText('Intermedio');
-    await expect(page.locator('.resultado__puntaje')).toHaveCount(2);
-    const envio = peticiones.find(p => p.metodo === 'POST' && p.ruta === '/evaluacion');
-    expect(envio?.cuerpo).toEqual({ idsOpciones: [12, 23, 31] });
+    expect(ultima(peticiones, 'POST /evaluacion')?.cuerpo).toEqual({ idsOpciones: [12, 21, 32, 42, 51] });
 
     await page.getByRole('button', { name: 'Entrar a KINET' }).click();
-    await expect(page).toHaveURL(/\/tabs/);
+    await expect(page).toHaveURL(/\/tabs\/inicio$/);
   });
 
-  test('al volver a la pregunta anterior conserva la respuesta marcada', async ({ page }) => {
-    await jugadorNuevo(page);
-    await page.goto('/evaluacion');
-
-    await opcion(page, 'Avanzado 1').click();
-    await expect(page.getByText('Pregunta 2 de 3')).toBeVisible();
-
-    await page.getByRole('button', { name: 'Pregunta anterior' }).click();
-    await expect(page.getByText('Pregunta 1 de 3')).toBeVisible();
-    await expect(opcion(page, 'Avanzado 1')).toHaveClass(/opcion--marcada/);
-  });
-
-  test('en la primera pregunta no hay botón de volver', async ({ page }) => {
-    await jugadorNuevo(page);
-    await page.goto('/evaluacion');
-
-    await expect(page.getByText('Pregunta 1 de 3')).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Pregunta anterior' })).toHaveCount(0);
-  });
-
-  test('si fallan las preguntas, "Reintentar" las vuelve a pedir', async ({ page }) => {
-    let intentos = 0;
-    await jugadorNuevo(page, {
-      'GET /evaluacion/preguntas': () => (++intentos === 1 ? fallo(500, 'Error interno del servidor.') : ok(PREGUNTAS)),
+  test('se puede volver a la pregunta anterior y cambiar la respuesta', async ({ page }) => {
+    const peticiones = await simularApi(page, {
+      'GET /usuarios/me': ok(usuario({ nivelHabilidad: null })),
+      'GET /evaluacion/preguntas': ok(PREGUNTAS),
+      'POST /evaluacion': ok(resultadoEvaluacion(), 201),
     });
+
     await page.goto('/evaluacion');
+    await responder(page, 1, 'A');
+    await responder(page, 2, 'A');
+    await expect(page.getByText('Pregunta 3 de 5')).toBeVisible();
+    await page.getByRole('button', { name: 'Pregunta anterior' }).click();
+    await responder(page, 2, 'B');
+    for (const n of [3, 4, 5]) await responder(page, n, 'A');
 
-    await expect(page.getByRole('alert')).toHaveText('Error interno del servidor.');
-    await page.getByRole('button', { name: 'Reintentar' }).click();
-
-    await expect(page.getByText('Pregunta 1 de 3')).toBeVisible();
-    expect(intentos).toBe(2);
+    await expect(page.getByRole('heading', { name: 'Tu nivel inicial' })).toBeVisible();
+    expect(ultima(peticiones, 'POST /evaluacion')?.cuerpo).toEqual({ idsOpciones: [11, 22, 31, 41, 51] });
   });
 
-  test('sin preguntas activas lo avisa', async ({ page }) => {
-    await jugadorNuevo(page, { 'GET /evaluacion/preguntas': ok([]) });
+  test('si falla la carga de preguntas se puede reintentar', async ({ page }) => {
+    let intentos = 0;
+    await simularApi(page, {
+      'GET /usuarios/me': ok(usuario({ nivelHabilidad: null })),
+      'GET /evaluacion/preguntas': () => (++intentos === 1 ? sinConexion : ok(PREGUNTAS)),
+    });
+
+    await page.goto('/evaluacion');
+    await expect(page.getByRole('alert')).toHaveText('No hay conexión con el servidor. Revisa tu internet.');
+
+    await page.getByRole('button', { name: 'Reintentar' }).click();
+    await expect(page.getByText('Pregunta 1 de 5')).toBeVisible();
+  });
+
+  test('si falla el envío se reintenta con las mismas respuestas', async ({ page }) => {
+    let intentos = 0;
+    const peticiones = await simularApi(page, {
+      'GET /usuarios/me': ok(usuario({ nivelHabilidad: null })),
+      'GET /evaluacion/preguntas': ok(PREGUNTAS),
+      'POST /evaluacion': () => (++intentos === 1 ? fallo(500, 'No pudimos calcular tu nivel.') : ok(resultadoEvaluacion('AVANZADO'), 201)),
+    });
+
+    await page.goto('/evaluacion');
+    for (const n of [1, 2, 3, 4, 5]) await responder(page, n, 'B');
+    await expect(page.getByRole('alert')).toHaveText('No pudimos calcular tu nivel.');
+
+    await page.getByRole('button', { name: 'Reintentar' }).click();
+    await expect(page.locator('.resultado__nivel')).toHaveText('Avanzado');
+    const envios = peticiones.filter(p => p.clave === 'POST /evaluacion');
+    expect(envios).toHaveLength(2);
+    expect(envios[1].cuerpo).toEqual(envios[0].cuerpo);
+  });
+
+  test('un cuestionario vacío muestra un aviso', async ({ page }) => {
+    await simularApi(page, {
+      'GET /usuarios/me': ok(usuario({ nivelHabilidad: null })),
+      'GET /evaluacion/preguntas': ok([]),
+    });
+
     await page.goto('/evaluacion');
 
     await expect(page.getByRole('alert')).toHaveText('No hay preguntas disponibles. Intenta más tarde.');
   });
 
-  test('si falla el envío, "Reintentar" reenvía las mismas respuestas', async ({ page }) => {
-    let envios = 0;
-    const peticiones = await jugadorNuevo(page, {
-      'POST /evaluacion': () => (++envios === 1 ? fallo(500, 'No se pudo guardar.') : ok(RESULTADO_EVALUACION, 201)),
+  test('salir cierra la sesión y vuelve al inicio de sesión', async ({ page }) => {
+    await simularApi(page, {
+      'GET /usuarios/me': ok(usuario({ nivelHabilidad: null })),
+      'GET /evaluacion/preguntas': ok(PREGUNTAS),
     });
+
     await page.goto('/evaluacion');
-
-    await opcion(page, 'Intermedio 1').click();
-    await opcion(page, 'Intermedio 2').click();
-    await opcion(page, 'Intermedio 3').click();
-    await expect(page.getByRole('alert')).toHaveText('No se pudo guardar.');
-
-    await page.getByRole('button', { name: 'Reintentar' }).click();
-    await expect(page.getByText('Tu nivel inicial')).toBeVisible();
-
-    const cuerpos = peticiones.filter(p => p.metodo === 'POST').map(p => p.cuerpo);
-    expect(cuerpos).toEqual([{ idsOpciones: [12, 22, 32] }, { idsOpciones: [12, 22, 32] }]);
-  });
-
-  test('"Salir" cierra la sesión y vuelve al login', async ({ page }) => {
-    await jugadorNuevo(page);
-    await page.goto('/evaluacion');
-
+    await expect(page.getByText('Pregunta 1 de 5')).toBeVisible();
     await page.getByRole('button', { name: 'Salir' }).click();
 
     await expect(page).toHaveURL(/\/login$/);

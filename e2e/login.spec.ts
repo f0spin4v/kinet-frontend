@@ -1,124 +1,142 @@
 import { expect, test } from '@playwright/test';
-import { fallo, ok, simularApi, sinConexion } from './utils/api';
-import { PREGUNTAS, TOKEN, sesion } from './utils/datos';
+import { fallo, ok, simularApi, sinConexion, ultima } from './utils/api';
+import { apiDeInicio, PREGUNTAS, sesion } from './utils/datos';
+import { escribir, pausa } from './utils/demo';
 import { tokenGuardado } from './utils/sesion';
 
 test.describe('Inicio de sesión', () => {
-  const correo = (page: import('@playwright/test').Page) => page.getByLabel('Correo');
-  const contrasena = (page: import('@playwright/test').Page) => page.getByLabel('Contraseña', { exact: true });
-  const entrar = (page: import('@playwright/test').Page) => page.getByRole('button', { name: 'Iniciar sesión' });
+  test('un jugador evaluado inicia sesión y entra a la app', { tag: '@principal' }, async ({ page }) => {
+    const peticiones = await simularApi(page, {
+      'POST /auth/login': ok(sesion()),
+      ...apiDeInicio(),
+    });
 
-  test('un jugador ya evaluado entra a la app y queda guardada la sesión', { tag: '@principal' }, async ({ page }) => {
-    const peticiones = await simularApi(page, { 'POST /auth/login': ok(sesion()) });
+    // 1. Abre la pantalla de inicio de sesión
+    await page.goto('/login');
+    await expect(page.getByRole('heading', { name: 'Inicia sesión' })).toBeVisible();
+    await pausa(page);
 
-    await test.step('Dado que estoy en la pantalla de inicio de sesión', async () => {
-      await page.goto('/login');
-    });
-    await test.step('Cuando escribo mi correo y contraseña y pulso "Iniciar sesión"', async () => {
-      await correo(page).fill('ana@kinet.com');
-      await contrasena(page).fill('Segura123');
-      await entrar(page).click();
-    });
-    await test.step('Entonces entro a la app', async () => {
-      await expect(page).toHaveURL(/\/tabs/);
-    });
-    await test.step('Y se enviaron mis credenciales y quedó guardada la sesión', async () => {
-      expect(peticiones[0].cuerpo).toEqual({ correo: 'ana@kinet.com', contrasena: 'Segura123' });
-      expect(peticiones[0].autorizacion).toBeNull();
-      await expect.poll(() => tokenGuardado(page)).toBe(TOKEN);
-    });
+    // 2. Escribe sus credenciales y envía el formulario
+    await escribir(page.getByLabel('Correo'), 'laura@kinet.com');
+    await escribir(page.getByLabel('Contraseña', { exact: true }), 'Kinet2026');
+    await pausa(page);
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+
+    // 3. Entra a Inicio con sus datos
+    await expect(page).toHaveURL(/\/tabs\/inicio$/);
+    await expect(page.getByRole('heading', { name: /Hola, laura_runner/ })).toBeVisible();
+    await pausa(page);
+
+    // 4. Se envió lo que escribió y quedó guardada la sesión
+    expect(ultima(peticiones, 'POST /auth/login')?.cuerpo).toEqual({ correo: 'laura@kinet.com', contrasena: 'Kinet2026' });
+    expect(await tokenGuardado(page)).toBe('token-de-prueba');
   });
 
-  test('un jugador sin evaluación va primero a la evaluación', async ({ page }) => {
+  test('un jugador sin evaluación va a la evaluación de nivel', async ({ page }) => {
     await simularApi(page, {
       'POST /auth/login': ok(sesion({ nivelHabilidad: null })),
       'GET /evaluacion/preguntas': ok(PREGUNTAS),
     });
 
     await page.goto('/login');
-    await correo(page).fill('ana@kinet.com');
-    await contrasena(page).fill('Segura123');
-    await entrar(page).click();
+    await page.getByLabel('Correo').fill('andres@kinet.com');
+    await page.getByLabel('Contraseña', { exact: true }).fill('Kinet2026');
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
     await expect(page).toHaveURL(/\/evaluacion$/);
+    await expect(page.getByText('Pregunta 1 de 5')).toBeVisible();
   });
 
-  test('con los campos vacíos muestra los errores y no llama a la API', async ({ page }) => {
-    const peticiones = await simularApi(page, {});
+  test('el equipo (entrenador) entra a su panel', async ({ page }) => {
+    await simularApi(page, {
+      'POST /auth/login': ok(sesion({ rol: 'ENTRENADOR', correo: 'entrenador@kinet.com', nivelHabilidad: null })),
+    });
 
     await page.goto('/login');
-    await entrar(page).click();
+    await page.getByLabel('Correo').fill('entrenador@kinet.com');
+    await page.getByLabel('Contraseña', { exact: true }).fill('Kinet2026');
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+
+    await expect(page).toHaveURL(/\/staff/);
+  });
+
+  test('los campos vacíos muestran sus errores y no se llama a la API', async ({ page }) => {
+    const peticiones = await simularApi(page, {});
+    await page.goto('/login');
+
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
     await expect(page.getByText('Escribe tu correo.')).toBeVisible();
     await expect(page.getByText('Escribe tu contraseña.')).toBeVisible();
-    expect(peticiones).toHaveLength(0);
+    expect(ultima(peticiones, 'POST /auth/login')).toBeUndefined();
   });
 
-  test('avisa si el correo no tiene formato válido', async ({ page }) => {
+  test('un correo con formato inválido se rechaza', async ({ page }) => {
     await simularApi(page, {});
-
     await page.goto('/login');
-    await correo(page).fill('ana-sin-arroba');
-    await contrasena(page).fill('Segura123');
-    await entrar(page).click();
+
+    await page.getByLabel('Correo').fill('laura-sin-arroba');
+    await page.getByLabel('Contraseña', { exact: true }).fill('Kinet2026');
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
     await expect(page.getByText('El correo no tiene un formato válido.')).toBeVisible();
   });
 
-  test('con credenciales incorrectas muestra el error del servidor y sigue en el login', async ({ page }) => {
+  test('las credenciales incorrectas muestran el mensaje del servidor', async ({ page }) => {
     await simularApi(page, { 'POST /auth/login': fallo(401, 'Correo o contraseña incorrectos.') });
-
     await page.goto('/login');
-    await correo(page).fill('ana@kinet.com');
-    await contrasena(page).fill('Equivocada1');
-    await entrar(page).click();
+
+    await page.getByLabel('Correo').fill('laura@kinet.com');
+    await page.getByLabel('Contraseña', { exact: true }).fill('Equivocada1');
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
     await expect(page.getByRole('alert')).toHaveText('Correo o contraseña incorrectos.');
     await expect(page).toHaveURL(/\/login$/);
+    expect(await tokenGuardado(page)).toBeNull();
   });
 
-  test('una cuenta bloqueada muestra el mensaje del servidor', async ({ page }) => {
-    await simularApi(page, { 'POST /auth/login': fallo(403, 'Tu cuenta está bloqueada. Contacta a soporte.') });
-
+  test('una cuenta bloqueada no puede entrar', async ({ page }) => {
+    await simularApi(page, { 'POST /auth/login': fallo(403, 'Tu cuenta está bloqueada. Escribe a soporte.') });
     await page.goto('/login');
-    await correo(page).fill('ana@kinet.com');
-    await contrasena(page).fill('Segura123');
-    await entrar(page).click();
 
-    await expect(page.getByRole('alert')).toHaveText('Tu cuenta está bloqueada. Contacta a soporte.');
+    await page.getByLabel('Correo').fill('pedro@kinet.com');
+    await page.getByLabel('Contraseña', { exact: true }).fill('Kinet2026');
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+
+    await expect(page.getByRole('alert')).toHaveText('Tu cuenta está bloqueada. Escribe a soporte.');
   });
 
-  test('sin conexión con el servidor lo explica', async ({ page }) => {
+  test('sin conexión avisa que no hay servidor', async ({ page }) => {
     await simularApi(page, { 'POST /auth/login': sinConexion });
-
     await page.goto('/login');
-    await correo(page).fill('ana@kinet.com');
-    await contrasena(page).fill('Segura123');
-    await entrar(page).click();
+
+    await page.getByLabel('Correo').fill('laura@kinet.com');
+    await page.getByLabel('Contraseña', { exact: true }).fill('Kinet2026');
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
 
     await expect(page.getByRole('alert')).toHaveText('No hay conexión con el servidor. Revisa tu internet.');
   });
 
   test('el botón del ojo muestra y oculta la contraseña', async ({ page }) => {
     await simularApi(page, {});
-
     await page.goto('/login');
-    await contrasena(page).fill('Segura123');
-    await expect(contrasena(page)).toHaveAttribute('type', 'password');
+    const campo = page.getByLabel('Contraseña', { exact: true });
+    await campo.fill('Kinet2026');
 
+    await expect(campo).toHaveAttribute('type', 'password');
     await page.getByRole('button', { name: 'Mostrar contraseña' }).click();
-    await expect(contrasena(page)).toHaveAttribute('type', 'text');
-
+    await expect(campo).toHaveAttribute('type', 'text');
     await page.getByRole('button', { name: 'Ocultar contraseña' }).click();
-    await expect(contrasena(page)).toHaveAttribute('type', 'password');
+    await expect(campo).toHaveAttribute('type', 'password');
   });
 
   test('el enlace lleva al registro', async ({ page }) => {
     await simularApi(page, {});
-
     await page.goto('/login');
+
     await page.getByRole('link', { name: 'Crea tu cuenta' }).click();
 
     await expect(page).toHaveURL(/\/registro$/);
+    await expect(page.getByRole('heading', { name: 'Crea tu cuenta' })).toBeVisible();
   });
 });

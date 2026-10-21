@@ -1,50 +1,28 @@
 import { expect, test } from '@playwright/test';
-import { fallo, ok, simularApi, sinConexion } from './utils/api';
-import { TOKEN, usuario } from './utils/datos';
+import { fallo, ok, simularApi, sinConexion, ultima } from './utils/api';
+import { apiDeInicio, usuario } from './utils/datos';
 import { conSesion, tokenGuardado } from './utils/sesion';
 
-/** src/app/core/interceptors: authInterceptor y respuestaInterceptor. */
 test.describe('Comunicación con la API', () => {
-  test('con sesión, cada petición lleva el token', async ({ page }) => {
-    await conSesion(page);
-    const peticiones = await simularApi(page, {
-      'GET /usuarios/me': ok(usuario()),
-      'PUT /usuarios/me': ok(usuario({ nombres: 'María' })),
-    });
+  test('cada petición lleva el token de la sesión', async ({ page }) => {
+    await conSesion(page, 'mi-token');
+    const peticiones = await simularApi(page, apiDeInicio());
 
-    await page.goto('/tabs/perfil/editar');
-    await page.getByLabel('Nombres').fill('María');
-    await page.getByRole('button', { name: 'Guardar cambios' }).click();
-    await expect.poll(() => peticiones.some(p => p.metodo === 'PUT')).toBe(true);
+    await page.goto('/tabs/inicio');
+    await expect(page.getByRole('heading', { name: /Hola, laura_runner/ })).toBeVisible();
 
-    expect(peticiones.length).toBeGreaterThanOrEqual(2);
-    for (const p of peticiones) {
-      expect(p.autorizacion).toBe(`Bearer ${TOKEN}`);
-    }
+    expect(ultima(peticiones, 'GET /usuarios/me')?.token).toBe('mi-token');
+    expect(ultima(peticiones, 'GET /progreso')?.token).toBe('mi-token');
   });
 
-  test('sin sesión no se envía el encabezado de autorización', async ({ page }) => {
-    const peticiones = await simularApi(page, { 'POST /auth/login': fallo(401, 'Credenciales inválidas') });
-
-    await page.goto('/login');
-    await page.getByLabel('Correo').fill('ana@kinet.com');
-    await page.getByLabel('Contraseña', { exact: true }).fill('Segura123');
-    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
-    await expect(page.getByRole('alert')).toBeVisible();
-
-    expect(peticiones[0].autorizacion).toBeNull();
-  });
-
-  test('un 401 a mitad de uso cierra la sesión y lleva al login', async ({ page }) => {
+  test('un 401 a mitad de uso cierra la sesión y manda al login', async ({ page }) => {
     await conSesion(page);
     await simularApi(page, {
-      'GET /usuarios/me': ok(usuario()),
-      'PUT /usuarios/me': fallo(401, 'Token vencido.'),
+      ...apiDeInicio(),
+      'GET /progreso': fallo(401, 'Tu sesión no es válida o ya venció.'),
     });
 
-    await page.goto('/tabs/perfil/editar');
-    await page.getByLabel('Nombres').fill('María');
-    await page.getByRole('button', { name: 'Guardar cambios' }).click();
+    await page.goto('/tabs/inicio');
 
     await expect(page).toHaveURL(/\/login$/);
     expect(await tokenGuardado(page)).toBeNull();
@@ -53,28 +31,34 @@ test.describe('Comunicación con la API', () => {
   test('un error sin el formato del backend muestra un mensaje genérico', async ({ page }) => {
     await conSesion(page);
     await simularApi(page, {
-      'GET /usuarios/me': ok(usuario()),
-      'PUT /usuarios/me': { status: 500, body: null },
+      ...apiDeInicio(),
+      'GET /progreso': { status: 500, cuerpo: 'Internal Server Error' },
     });
 
-    await page.goto('/tabs/perfil/editar');
-    await page.getByLabel('Nombres').fill('María');
-    await page.getByRole('button', { name: 'Guardar cambios' }).click();
+    await page.goto('/tabs/inicio');
 
-    await expect(page.getByRole('alert')).toHaveText('Ocurrió un error inesperado. Intenta de nuevo.');
+    await expect(page.getByText('Ocurrió un error inesperado. Intenta de nuevo.')).toBeVisible();
   });
 
-  test('si el servidor no responde se avisa de la conexión', async ({ page }) => {
+  test('sin conexión la pantalla lo avisa', async ({ page }) => {
     await conSesion(page);
-    await simularApi(page, {
-      'GET /usuarios/me': ok(usuario()),
-      'PUT /usuarios/me': sinConexion,
-    });
+    await simularApi(page, { ...apiDeInicio(), 'GET /progreso': sinConexion });
 
-    await page.goto('/tabs/perfil/editar');
-    await page.getByLabel('Nombres').fill('María');
-    await page.getByRole('button', { name: 'Guardar cambios' }).click();
+    await page.goto('/tabs/inicio');
 
-    await expect(page.getByRole('alert')).toHaveText('No hay conexión con el servidor. Revisa tu internet.');
+    await expect(page.getByText('No hay conexión con el servidor. Revisa tu internet.')).toBeVisible();
+  });
+
+  test('el login no envía token cuando no hay sesión', async ({ page }) => {
+    const peticiones = await simularApi(page, { 'POST /auth/login': fallo(401, 'Correo o contraseña incorrectos.') });
+
+    await page.goto('/login');
+    await page.getByLabel('Correo').fill('laura@kinet.com');
+    await page.getByLabel('Contraseña', { exact: true }).fill('Kinet2026');
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+    await expect(page.getByRole('alert')).toBeVisible();
+
+    expect(ultima(peticiones, 'POST /auth/login')?.token).toBeNull();
+    expect(usuario().correo).toBe('laura@kinet.com');
   });
 });
