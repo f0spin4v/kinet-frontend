@@ -1,10 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, switchMap } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   Actividad, CrearReglaRequest, GuardarLogroRequest, GuardarPreguntaRequest, Logro, NivelProgresion,
-  PreguntaAdmin, Regla, RegistroRequest, Sesion,
+  PreguntaAdmin, Regla, AccionAdmin, CrearCuentaRequest,
   EstadoReto, EstadoEvidencia, EstadoUsuario, Evidencia, EntrenamientoPendiente, GuardarRetoRequest,
   GuardarTemporadaRequest, Mensaje, MovimientoXp, Pagina, ResultadoEntrenamiento, ResumenAnalitica, Reto, Rol,
   Temporada, Usuario,
@@ -72,13 +72,16 @@ export class StaffService {
   }
 
   /**
-   * Alta de una cuenta de cualquier rol. El registro público solo crea jugadores, así que para entrenador o
-   * administrador se registra y luego se cambia el rol. No toca la sesión del administrador.
+   * Alta de una cuenta de cualquier rol (POST /api/admin/usuarios). El administrador NO acepta la política de
+   * datos por el titular: la acepta él mismo en su primer ingreso (Ley 1581 de 2012). Queda en la bitácora.
    */
-  crearCuenta(datos: RegistroRequest, rol: Rol): Observable<Usuario> {
-    return this.http.post<Sesion>(`${this.api}/auth/registro`, datos).pipe(
-      switchMap(s => (rol === 'JUGADOR' ? of(s.usuario) : this.cambiarRol(s.usuario.id, rol))),
-    );
+  crearCuenta(datos: CrearCuentaRequest): Observable<Usuario> {
+    return this.http.post<Usuario>(`${this.api}/admin/usuarios`, datos);
+  }
+
+  /** Bitácora de acciones administrativas, lo más reciente primero. */
+  bitacora(pagina = 0, tamanio = 20): Observable<Pagina<AccionAdmin>> {
+    return this.http.get<Pagina<AccionAdmin>>(`${this.api}/admin/bitacora`, { params: paginacion(pagina, tamanio) });
   }
 
   analitica(): Observable<ResumenAnalitica> {

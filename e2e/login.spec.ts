@@ -60,6 +60,25 @@ test.describe('Inicio de sesión', () => {
     await expect(page).toHaveURL(/\/staff/);
   });
 
+  test('una cuenta creada por el administrador acepta la política antes de entrar (Ley 1581)', async ({ page }) => {
+    const pendiente = sesion({ rol: 'ENTRENADOR', correo: 'eva@kinet.com', nivelHabilidad: null, aceptaPolitica: false });
+    const peticiones = await simularApi(page, {
+      'POST /auth/login': ok(pendiente),
+      'PUT /usuarios/me/politica': ok({ ...pendiente.usuario, aceptaPolitica: true }),
+    });
+
+    await page.goto('/login');
+    await page.getByLabel('Correo').fill('eva@kinet.com');
+    await page.getByLabel('Contraseña', { exact: true }).fill('Temporal123');
+    await page.getByRole('button', { name: 'Iniciar sesión' }).click();
+
+    await expect(page).toHaveURL(/\/aceptar-politica$/);
+    await page.getByRole('button', { name: 'Acepto la política' }).click();
+
+    await expect(page).toHaveURL(/\/staff/);
+    expect(ultima(peticiones, 'PUT /usuarios/me/politica')).toBeDefined();
+  });
+
   test('los campos vacíos muestran sus errores y no se llama a la API', async ({ page }) => {
     const peticiones = await simularApi(page, {});
     await page.goto('/login');

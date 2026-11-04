@@ -5,17 +5,20 @@ import { escribir, pausa } from './utils/demo';
 
 /** Llena el formulario de registro con datos válidos; `cambios` reemplaza algún campo. */
 async function llenarRegistro(page: Page, cambios: Partial<Record<string, string>> = {}): Promise<void> {
+  const { 'Fecha de nacimiento': fecha, ...otros } = cambios;
   const datos = {
     Nombres: 'Mateo',
     Apellidos: 'Ríos',
     Gamertag: 'mateo_run',
     Correo: 'mateo@kinet.com',
     'Contraseña': 'Kinet2026',
-    ...cambios,
+    ...otros,
   };
   for (const [campo, valor] of Object.entries(datos)) {
     await escribir(page.getByLabel(campo, { exact: true }), valor ?? '');
   }
+  // la fecha es un <input type="date">: se llena de una vez
+  await page.getByLabel('Fecha de nacimiento').fill(fecha ?? '2000-05-20');
 }
 
 test.describe('Registro', () => {
@@ -49,7 +52,7 @@ test.describe('Registro', () => {
       gamertag: 'mateo_run',
       correo: 'mateo@kinet.com',
       contrasena: 'Kinet2026',
-      fechaNacimiento: null,
+      fechaNacimiento: '2000-05-20',
       aceptaPolitica: true,
     });
   });
@@ -65,6 +68,7 @@ test.describe('Registro', () => {
     await expect(page.getByText('Elige un gamertag.')).toBeVisible();
     await expect(page.getByText('Escribe tu correo.')).toBeVisible();
     await expect(page.getByText('Escribe una contraseña.')).toBeVisible();
+    await expect(page.getByText('Escribe tu fecha de nacimiento.')).toBeVisible();
     await expect(page.getByText('Debes aceptar la política de tratamiento de datos.')).toBeVisible();
     expect(ultima(peticiones, 'POST /auth/registro')).toBeUndefined();
   });
@@ -122,6 +126,28 @@ test.describe('Registro', () => {
     await page.getByRole('button', { name: 'Crear cuenta' }).click();
 
     await expect(page.getByRole('alert')).toHaveText('Ese gamertag ya está en uso.');
+  });
+
+  test('un menor de edad no puede registrarse (Ley 1581)', async ({ page }) => {
+    const peticiones = await simularApi(page, {});
+    await page.goto('/registro');
+
+    const hace15 = new Date();
+    hace15.setFullYear(hace15.getFullYear() - 15);
+    await llenarRegistro(page, { 'Fecha de nacimiento': hace15.toLocaleDateString('en-CA') });
+    await page.getByLabel('Acepto la política de tratamiento de datos personales.').check();
+    await page.getByRole('button', { name: 'Crear cuenta' }).click();
+
+    await expect(page.getByText('Kinet es solo para mayores de 18 años.').first()).toBeVisible();
+    expect(ultima(peticiones, 'POST /auth/registro')).toBeUndefined();
+  });
+
+  test('la política de datos se puede leer desde el registro', async ({ page }) => {
+    await simularApi(page, {});
+    await page.goto('/politica-datos');
+
+    await expect(page.getByRole('heading', { name: 'Política de tratamiento de datos personales' })).toBeVisible();
+    await expect(page.getByText('Kinet es solo para mayores de 18 años. No recogemos')).toBeVisible();
   });
 
   test('el enlace vuelve al inicio de sesión', async ({ page }) => {

@@ -5,7 +5,7 @@ import { AlertController, IonContent, IonHeader, IonIcon, IonToolbar, ViewWillEn
 import { addIcons } from 'ionicons';
 import { addOutline, searchOutline } from 'ionicons/icons';
 import { Observable, finalize } from 'rxjs';
-import { EstadoUsuario, Rol, Usuario } from '../core/models/api.models';
+import { AccionAdmin, EstadoUsuario, Rol, Usuario } from '../core/models/api.models';
 import { AuthService } from '../core/services/auth';
 import { StaffService } from '../core/services/staff';
 import { claseEstado, etiqueta, fechaLarga } from '../core/utils/formato';
@@ -122,11 +122,34 @@ import { PieListaComponent } from '../shared/components/pie-lista/pie-lista';
           </table>
           <app-pie-lista [lista]="lista" vacio="No se encontraron cuentas." />
         </div>
+
+        <h2 class="titulo-seccion">Bitácora de acciones administrativas</h2>
+        <p class="texto-suave bitacora-lead">Cada cambio de estado o de rol, cada cuenta creada y cada ajuste de XP queda registrado. No se puede editar ni borrar.</p>
+        <div class="tarjeta tabla-scroll">
+          <table class="tabla">
+            <thead>
+              <tr><th>Fecha</th><th>Quién</th><th>Acción</th><th>Cuenta</th><th>Cambio</th></tr>
+            </thead>
+            <tbody>
+              @for (a of bitacora.items(); track a.id) {
+                <tr>
+                  <td>{{ fechaLarga(a.fecha) }}</td>
+                  <td>{{ a.correoActor }}</td>
+                  <td>{{ etiqueta(a.accion) }}</td>
+                  <td>{{ a.correoAfectado ?? '—' }}</td>
+                  <td>{{ detalleAccion(a) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+          <app-pie-lista [lista]="bitacora" vacio="Todavía no hay acciones registradas." />
+        </div>
       </div>
     </ion-content>
   `,
   styles: `
     .nueva { width: auto; padding: 0 18px; }
+    .bitacora-lead { margin: -4px 0 12px; }
     .formulario, .filtros { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
     .celda { height: 40px; padding: 0 8px; min-width: 130px; }
     .celda select { font-size: 14px; }
@@ -146,6 +169,8 @@ export class CuentasPage implements ViewWillEnter {
   correo = '';
   estado: EstadoUsuario | '' = '';
   lista = new ListaPaginada<Usuario>((p, t) => this.staff.usuarios(this.correo.trim(), this.estado, p, t), 15);
+  /** Bitácora: quién cambió qué y cuándo (auditoría 03/11/2026). */
+  bitacora = new ListaPaginada<AccionAdmin>((p, t) => this.staff.bitacora(p, t), 10);
   miId = () => this.auth.usuario()?.id ?? -1;
 
   formAbierto = signal(false);
@@ -172,6 +197,14 @@ export class CuentasPage implements ViewWillEnter {
 
   ionViewWillEnter(): void {
     this.lista.recargar();
+    this.bitacora.recargar();
+  }
+
+  /** "Bloqueado → Activo", "Jugador → Entrenador" o el detalle del ajuste. */
+  detalleAccion(a: AccionAdmin): string {
+    if (a.accion === 'AJUSTE_XP') return a.valorNuevo ?? '—';
+    if (a.accion === 'CREACION_CUENTA') return `Rol: ${etiqueta(a.valorNuevo)}`;
+    return `${etiqueta(a.valorAnterior)} → ${etiqueta(a.valorNuevo)}`;
   }
 
   buscar(): void {
@@ -184,9 +217,8 @@ export class CuentasPage implements ViewWillEnter {
       this.error.set('Revisa los datos: todos son obligatorios, la contraseña necesita 8 caracteres con letra y número.');
       return;
     }
-    const { rol, ...resto } = this.nueva.getRawValue();
-    this.ejecutar(this.staff.crearCuenta({ ...resto, fechaNacimiento: null, aceptaPolitica: true }, rol),
-      u => `Cuenta de ${u.correo} creada como ${etiqueta(u.rol)}.`, () => {
+    this.ejecutar(this.staff.crearCuenta(this.nueva.getRawValue()),
+      u => `Cuenta de ${u.correo} creada como ${etiqueta(u.rol)}. Al entrar por primera vez deberá aceptar la política de datos.`, () => {
         this.nueva.reset({ rol: 'JUGADOR' });
         this.formAbierto.set(false);
         this.lista.recargar();
@@ -232,6 +264,7 @@ export class CuentasPage implements ViewWillEnter {
       next: r => {
         this.ok.set(mensaje(r));
         despues();
+        this.bitacora.recargar();
       },
       error: (e: HttpErrorResponse) => {
         this.error.set(mensajeDeError(e));

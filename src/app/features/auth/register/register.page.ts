@@ -44,7 +44,9 @@ const MENSAJES: Record<Campo, Record<string, string>> = {
     pattern: 'La contraseña debe incluir al menos una letra y un número.',
   },
   fechaNacimiento: {
+    required: 'Escribe tu fecha de nacimiento.',
     futura: 'La fecha de nacimiento debe estar en el pasado.',
+    menor: 'Kinet es solo para mayores de 18 años.',
   },
   aceptaPolitica: {
     required: 'Debes aceptar la política de tratamiento de datos.',
@@ -63,6 +65,12 @@ export class RegisterPage {
   private router = inject(Router);
 
   hoy = new Date().toLocaleDateString('en-CA');
+  /** Ley 1581 de 2012: Kinet solo trata datos de mayores de edad (mismo límite que el backend). */
+  hace18 = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 18);
+    return d.toLocaleDateString('en-CA');
+  })();
 
   form = this.fb.nonNullable.group({
     nombres: ['', [Validators.required, Validators.maxLength(80)]],
@@ -80,7 +88,11 @@ export class RegisterPage {
       Validators.maxLength(72),
       Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d).+$/),
     ]],
-    fechaNacimiento: ['', [(c: { value: string }) => (c.value && c.value >= this.hoy ? { futura: true } : null)]],
+    fechaNacimiento: ['', [
+      Validators.required,
+      (c: { value: string }) => (c.value && c.value >= this.hoy ? { futura: true } : null),
+      (c: { value: string }) => (c.value && c.value < this.hoy && c.value > this.hace18 ? { menor: true } : null),
+    ]],
     aceptaPolitica: [false, Validators.requiredTrue],
   });
 
@@ -111,8 +123,7 @@ export class RegisterPage {
     this.cargando.set(true);
     this.errorServidor.set(null);
 
-    const { fechaNacimiento, ...resto } = this.form.getRawValue();
-    this.auth.registrar({ ...resto, fechaNacimiento: fechaNacimiento || null })
+    this.auth.registrar(this.form.getRawValue())
       .pipe(finalize(() => this.cargando.set(false)))
       .subscribe({
         next: () => this.router.navigateByUrl(this.auth.rutaInicial(), { replaceUrl: true }),

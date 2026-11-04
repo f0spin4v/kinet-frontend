@@ -8,7 +8,7 @@ import { finalize } from 'rxjs';
 import { Participacion, Reto } from '../../core/models/api.models';
 import { JugadorService } from '../../core/services/jugador';
 import { tiempoRestante } from '../../core/utils/fechas';
-import { ETIQUETA_METRICA, claseEstado, etiqueta, fechaLarga } from '../../core/utils/formato';
+import { ETIQUETA_METRICA, unidadMetrica, claseEstado, etiqueta, fechaLarga } from '../../core/utils/formato';
 import { mensajeDeError } from '../../core/utils/http-error';
 import { BarraProgresoComponent } from '../../shared/components/barra-progreso/barra-progreso';
 
@@ -36,7 +36,7 @@ import { BarraProgresoComponent } from '../../shared/components/barra-progreso/b
             <p class="texto-suave">{{ r.descripcion }}</p>
             @if (r.condiciones) { <p class="texto-tenue">{{ r.condiciones }}</p> }
             <dl class="kv-lista">
-              <div class="kv"><dt>Meta</dt><dd>{{ r.valorMeta }} {{ metrica[r.metrica] }}</dd></div>
+              <div class="kv"><dt>Meta</dt><dd>{{ r.valorMeta }} {{ unidadMetrica(r.metrica, r.valorMeta) }}</dd></div>
               <div class="kv"><dt>Periodicidad</dt><dd>{{ etiqueta(r.periodicidad) }}</dd></div>
               <div class="kv"><dt>Ámbito</dt><dd>{{ r.ambito === 'CLAN' ? 'Clan (suma todo el equipo)' : 'Individual' }}</dd></div>
               @if (r.actividad) { <div class="kv"><dt>Actividad</dt><dd>{{ etiqueta(r.actividad) }}</dd></div> }
@@ -53,12 +53,12 @@ import { BarraProgresoComponent } from '../../shared/components/barra-progreso/b
             <h2 class="titulo-seccion">Mi progreso</h2>
             <section class="tarjeta bloque">
               <div class="tarjeta__cabecera">
-                <p class="titulo-tarjeta">{{ p.progreso }} / {{ p.meta }} {{ metrica[p.metrica] }}</p>
+                <p class="titulo-tarjeta">{{ p.progreso }} / {{ p.meta }} {{ unidadMetrica(p.metrica, p.meta) }}</p>
                 <span class="chip" [class]="claseEstado(p.estado)">{{ etiqueta(p.estado) }}</span>
               </div>
               <app-barra-progreso [valor]="p.progreso" [meta]="p.meta" [completado]="p.estado === 'COMPLETADO'" />
               @if (p.progresoClan !== null) {
-                <p class="texto-suave">Progreso de todo el clan: {{ p.progresoClan }} {{ metrica[p.metrica] }}</p>
+                <p class="texto-suave">Progreso de todo el clan: {{ p.progresoClan }} {{ unidadMetrica(p.metrica, p.progresoClan) }}</p>
               }
               <p class="texto-tenue">
                 Periodo {{ p.periodo }}
@@ -124,6 +124,7 @@ export class DetalleRetoPage implements OnInit {
   nota = '';
 
   metrica = ETIQUETA_METRICA;
+  unidadMetrica = unidadMetrica;
   etiqueta = etiqueta;
   claseEstado = claseEstado;
   fechaLarga = fechaLarga;

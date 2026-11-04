@@ -27,7 +27,6 @@ import { ListaPaginada } from '../../../core/utils/lista-paginada';
   `,
 })
 export class PieListaComponent {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   lista = input.required<ListaPaginada<any>>();
   vacio = input('No hay nada para mostrar todavía.');
 

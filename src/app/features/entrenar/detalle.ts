@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, input, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, input, signal } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
 import { IonBackButton, IonButtons, IonContent, IonHeader, IonIcon, IonSpinner, IonTitle, IonToolbar } from '@ionic/angular';
@@ -9,6 +9,10 @@ import { Entrenamiento, Evidencia } from '../../core/models/api.models';
 import { JugadorService } from '../../core/services/jugador';
 import { claseEstado, duracion, etiqueta, fechaCorta } from '../../core/utils/formato';
 import { mensajeDeError } from '../../core/utils/http-error';
+
+/** Plazos para subir evidencia, iguales a ReglasJuego del backend. */
+const HORAS_EVIDENCIA = 48;
+const HORAS_EVIDENCIA_PENDIENTE = 4;
 
 /** Detalle de una sesión y su evidencia (imagen o enlace a una app deportiva). */
 @Component({
@@ -55,6 +59,11 @@ import { mensajeDeError } from '../../core/utils/http-error';
                 <div class="kv"><dt>Tipo</dt><dd>{{ ev.tipo === 'ENLACE' ? 'Enlace' + (ev.plataforma ? ' · ' + etiqueta(ev.plataforma) : '') : 'Imagen' }}</dd></div>
                 @if (ev.url) { <div class="kv"><dt>Enlace</dt><dd><a [href]="ev.url" target="_blank" rel="noopener noreferrer">{{ ev.url }}</a></dd></div> }
                 @if (ev.nombreArchivo) { <div class="kv"><dt>Archivo</dt><dd>{{ ev.nombreArchivo }}</dd></div> }
+                @if (imagenUrl(); as src) {
+                  <div class="kv kv--imagen"><dt>Imagen</dt><dd><img [src]="src" [alt]="'Evidencia: ' + (ev.nombreArchivo ?? 'imagen')" /></dd></div>
+                } @else if (errorImagen()) {
+                  <div class="kv"><dt>Imagen</dt><dd class="texto-suave">{{ errorImagen() }}</dd></div>
+                }
                 <div class="kv"><dt>Revisión</dt><dd><span class="chip" [class]="claseEstado(ev.estadoRevision)">{{ etiqueta(ev.estadoRevision) }}</span></dd></div>
                 @if (ev.notaRevision) { <div class="kv"><dt>Nota</dt><dd>{{ ev.notaRevision }}</dd></div> }
                 <div class="kv"><dt>Subida</dt><dd>{{ fechaCorta(ev.fechaSubida) }}</dd></div>
@@ -87,7 +96,7 @@ import { mensajeDeError } from '../../core/utils/http-error';
                 <input id="archivo" type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="subirImagen(e, $event)" />
               </div>
             } @else {
-              <p class="texto-suave">Esta sesión ya no admite evidencia.</p>
+              <p class="texto-suave">{{ motivoSinEvidencia(e) }}</p>
             }
           </section>
         } @else if (error()) {
@@ -100,9 +109,10 @@ import { mensajeDeError } from '../../core/utils/http-error';
     section.tarjeta { margin-bottom: 20px; display: flex; flex-direction: column; gap: 14px; }
     .subir { cursor: pointer; width: 100%; }
     .imagen { margin-top: 4px; }
+    .kv--imagen img { max-width: 100%; max-height: 320px; border-radius: 12px; display: block; }
   `,
 })
-export class DetalleEntrenamientoPage implements OnInit {
+export class DetalleEntrenamientoPage implements OnInit, OnDestroy {
   private jugador = inject(JugadorService);
 
   /** Viene de la ruta (:id) gracias a withComponentInputBinding. */
@@ -114,6 +124,8 @@ export class DetalleEntrenamientoPage implements OnInit {
   subiendo = signal(false);
   error = signal<string | null>(null);
   ok = signal<string | null>(null);
+  imagenUrl = signal<string | null>(null);
+  errorImagen = signal<string | null>(null);
   enlace = '';
 
   etiqueta = etiqueta;
@@ -129,8 +141,26 @@ export class DetalleEntrenamientoPage implements OnInit {
     this.cargar();
   }
 
+  ngOnDestroy(): void {
+    this.liberarImagen();
+  }
+
+  /**
+   * Mismas reglas que el backend (EvidenciaService): sesión terminada y no rechazada; una validada admite
+   * evidencia 48 h después de terminar y una pendiente de revisión, 4 h. Pasado el plazo no se ofrece subirla.
+   */
   puedeSubir(e: Entrenamiento): boolean {
-    return e.estado !== 'EN_CURSO';
+    if (e.estado !== 'VALIDADO' && e.estado !== 'PENDIENTE') return false;
+    if (!e.fechaHoraFin) return false;
+    const horas = e.estado === 'PENDIENTE' ? HORAS_EVIDENCIA_PENDIENTE : HORAS_EVIDENCIA;
+    return Date.now() < new Date(e.fechaHoraFin).getTime() + horas * 3_600_000;
+  }
+
+  motivoSinEvidencia(e: Entrenamiento): string {
+    if (e.estado === 'EN_CURSO') return 'Termina la sesión para poder subir evidencia.';
+    if (e.estado === 'RECHAZADO') return 'Una sesión rechazada no admite evidencia.';
+    const horas = e.estado === 'PENDIENTE' ? HORAS_EVIDENCIA_PENDIENTE : HORAS_EVIDENCIA;
+    return `El plazo para subir evidencia (${horas} horas después de terminar la sesión) ya venció.`;
   }
 
   private cargar(): void {
@@ -138,9 +168,17 @@ export class DetalleEntrenamientoPage implements OnInit {
     this.jugador.entrenamiento(id).subscribe({
       next: e => {
         this.entrenamiento.set(e);
-        this.jugador.evidencia(id).subscribe(ev => {
-          this.evidencia.set(ev);
-          this.cargando.set(false);
+        this.jugador.evidencia(id).subscribe({
+          next: ev => {
+            this.evidencia.set(ev);
+            this.cargando.set(false);
+            if (ev?.tipo === 'IMAGEN') this.cargarImagen(id);
+          },
+          // si falla, se muestra el detalle de la sesión con el error, nunca un indicador infinito
+          error: (err: HttpErrorResponse) => {
+            this.error.set(mensajeDeError(err));
+            this.cargando.set(false);
+          },
         });
       },
       error: (e: HttpErrorResponse) => {
@@ -148,6 +186,23 @@ export class DetalleEntrenamientoPage implements OnInit {
         this.cargando.set(false);
       },
     });
+  }
+
+  private cargarImagen(id: number): void {
+    this.errorImagen.set(null);
+    this.jugador.imagenEvidencia(id).subscribe({
+      next: archivo => {
+        this.liberarImagen();
+        this.imagenUrl.set(URL.createObjectURL(archivo));
+      },
+      error: () => this.errorImagen.set('No se pudo mostrar la imagen.'),
+    });
+  }
+
+  private liberarImagen(): void {
+    const actual = this.imagenUrl();
+    if (actual) URL.revokeObjectURL(actual);
+    this.imagenUrl.set(null);
   }
 
   subirEnlace(e: Entrenamiento): void {
@@ -169,6 +224,7 @@ export class DetalleEntrenamientoPage implements OnInit {
     peticion.pipe(finalize(() => this.subiendo.set(false))).subscribe({
       next: ev => {
         this.evidencia.set(ev);
+        if (ev.tipo === 'IMAGEN') this.cargarImagen(e.id);
         this.ok.set('Evidencia enviada. Un entrenador la revisará.');
         this.jugador.entrenamiento(e.id).subscribe(x => this.entrenamiento.set(x));
       },

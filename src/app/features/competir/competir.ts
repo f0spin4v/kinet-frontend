@@ -32,6 +32,8 @@ export class CompetirPage implements ViewWillEnter {
   private alertas = inject(AlertController);
 
   /** ?pestana=clan|competencias|temporada (por ejemplo, desde una notificación). */
+  // el alias es el nombre del parámetro de la URL (withComponentInputBinding); la señal 'pestana' ya existe
+  // eslint-disable-next-line @angular-eslint/no-input-rename
   pestanaInicial = input<string | undefined>(undefined, { alias: 'pestana' });
   pestana = signal<Pestana>('temporada');
   cargando = signal(true);

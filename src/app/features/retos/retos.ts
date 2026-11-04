@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { IonContent, IonHeader, IonToolbar, ViewWillEnter } from '@ionic/angular';
 import { Participacion, Reto } from '../../core/models/api.models';
 import { JugadorService } from '../../core/services/jugador';
-import { ETIQUETA_METRICA, claseEstado, etiqueta, fechaLarga } from '../../core/utils/formato';
+import { ETIQUETA_METRICA, unidadMetrica, claseEstado, etiqueta, fechaLarga } from '../../core/utils/formato';
 import { tiempoRestante } from '../../core/utils/fechas';
 import { ListaPaginada } from '../../core/utils/lista-paginada';
 import { BarraProgresoComponent } from '../../shared/components/barra-progreso/barra-progreso';
@@ -49,7 +49,7 @@ type Pestana = 'disponibles' | 'mios';
                 </div>
                 <p class="texto-suave">{{ r.descripcion }}</p>
                 <p class="texto-tenue">
-                  Meta: {{ r.valorMeta }} {{ metrica[r.metrica] }} · {{ etiqueta(r.periodicidad) }}
+                  Meta: {{ r.valorMeta }} {{ unidadMetrica(r.metrica, r.valorMeta) }} · {{ etiqueta(r.periodicidad) }}
                   @if (r.ambito === 'CLAN') { · En clan }
                   @if (r.actividad) { · {{ etiqueta(r.actividad) }} }
                 </p>
@@ -71,7 +71,7 @@ type Pestana = 'disponibles' | 'mios';
                 </div>
                 <app-barra-progreso [valor]="p.progreso" [meta]="p.meta" [completado]="p.estado === 'COMPLETADO'" />
                 <p class="texto-tenue">
-                  {{ p.progreso }} / {{ p.meta }} {{ metrica[p.metrica] }} ({{ p.porcentaje }}%)
+                  {{ p.progreso }} / {{ p.meta }} {{ unidadMetrica(p.metrica, p.meta) }} ({{ p.porcentaje }}%)
                   @if (p.estado === 'EN_CURSO') { · {{ tiempoRestante(p.fechaLimite) }} }
                   @if (p.fechaCompletado) { · Completado el {{ fechaLarga(p.fechaCompletado) }} }
                 </p>
@@ -93,6 +93,7 @@ export class RetosPage implements ViewWillEnter {
   mios = new ListaPaginada<Participacion>((p, t) => this.jugador.misRetos(p, t));
 
   metrica = ETIQUETA_METRICA;
+  unidadMetrica = unidadMetrica;
   etiqueta = etiqueta;
   claseEstado = claseEstado;
   fechaLarga = fechaLarga;
