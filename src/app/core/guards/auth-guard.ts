@@ -19,6 +19,7 @@ export const pendienteEvaluacionGuard: CanActivateFn = async () => {
   await auth.cargarSesion();
 
   if (!auth.autenticado()) return router.createUrlTree(['/login']);
+  if (auth.pendientePolitica()) return router.createUrlTree(['/aceptar-politica']);
   if (!auth.esJugador() || auth.evaluado()) return router.createUrlTree([auth.rutaInicial()]);
   return true;
 };
@@ -30,6 +31,7 @@ export const jugadorGuard: CanActivateFn = async () => {
   await auth.cargarSesion();
 
   if (!auth.autenticado()) return router.createUrlTree(['/login']);
+  if (auth.pendientePolitica()) return router.createUrlTree(['/aceptar-politica']);
   if (!auth.esJugador()) return router.createUrlTree([auth.rutaInicial()]);
   if (!auth.evaluado()) return router.createUrlTree(['/evaluacion']);
   return true;
@@ -42,6 +44,7 @@ export const staffGuard: CanActivateFn = async () => {
   await auth.cargarSesion();
 
   if (!auth.autenticado()) return router.createUrlTree(['/login']);
+  if (auth.pendientePolitica()) return router.createUrlTree(['/aceptar-politica']);
   if (!auth.esStaff()) return router.createUrlTree([auth.rutaInicial()]);
   return true;
 };
@@ -53,4 +56,14 @@ export const administradorGuard: CanActivateFn = async () => {
   await auth.cargarSesion();
 
   return auth.rol() === 'ADMINISTRADOR' ? true : router.createUrlTree([auth.rutaInicial()]);
+};
+
+/** Solo para quien tiene sesión y aún no acepta la política de datos (cuentas creadas por el administrador). */
+export const politicaPendienteGuard: CanActivateFn = async () => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  await auth.cargarSesion();
+
+  if (!auth.autenticado()) return router.createUrlTree(['/login']);
+  return auth.pendientePolitica() ? true : router.createUrlTree([auth.rutaInicial()]);
 };

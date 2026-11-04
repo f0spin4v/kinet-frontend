@@ -10,7 +10,7 @@ import {
 } from '../core/models/api.models';
 import { JugadorService } from '../core/services/jugador';
 import { StaffService } from '../core/services/staff';
-import { ETIQUETA_METRICA, aFechaBackend, aInputFecha, claseEstado, etiqueta } from '../core/utils/formato';
+import { ETIQUETA_METRICA, unidadMetrica, aFechaBackend, aInputFecha, claseEstado, etiqueta } from '../core/utils/formato';
 import { mensajeDeError } from '../core/utils/http-error';
 import { ListaPaginada } from '../core/utils/lista-paginada';
 import { RefrescarComponent } from '../shared/components/refrescar/refrescar';
@@ -68,6 +68,7 @@ export class RetosAdminPage implements ViewWillEnter {
   etiqueta = etiqueta;
   claseEstado = claseEstado;
   unidad = ETIQUETA_METRICA;
+  unidadMetrica = unidadMetrica;
 
   constructor() {
     addIcons({ addOutline });

@@ -6,10 +6,28 @@ export function numero(valor: number | null | undefined): string {
   return formatoNumero.format(valor ?? 0);
 }
 
-/** "INICIACION" → "Iniciacion", "BRONCE_III" → "Bronce iii" (los nombres de rango del backend ya vienen legibles). */
+/**
+ * Palabras que el backend manda en mayúsculas sin tilde (son nombres técnicos de enums y catálogos) y que en
+ * pantalla deben llevarla.
+ */
+const CON_TILDE: Record<string, string> = {
+  natacion: 'natación', unica: 'única', iniciacion: 'iniciación', sesion: 'sesión', validacion: 'validación',
+  evaluacion: 'evaluación', revision: 'revisión', recuperacion: 'recuperación', notificacion: 'notificación',
+  participacion: 'participación', puntuacion: 'puntuación', cancelacion: 'cancelación', creacion: 'creación',
+  accion: 'acción', competicion: 'competición', clasificacion: 'clasificación', medio: 'medio', dia: 'día',
+  dias: 'días', basico: 'básico', intermedio: 'intermedio', avanzado: 'avanzado', minimo: 'mínimo',
+  maximo: 'máximo', automatico: 'automático', energia: 'energía', ultima: 'última', ultimo: 'último',
+};
+
+/** "INICIACION" → "Iniciación", "BRONCE_III" → "Bronce iii", "NATACION" → "Natación". */
 export function etiqueta(valor: string | null | undefined): string {
   if (!valor) return '—';
-  const texto = valor.replace(/_/g, ' ').toLowerCase();
+  const texto = valor
+    .replace(/_/g, ' ')
+    .toLowerCase()
+    .split(' ')
+    .map(palabra => CON_TILDE[palabra] ?? palabra)
+    .join(' ');
   return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
@@ -38,6 +56,12 @@ export const ETIQUETA_METRICA: Record<MetricaReto, string> = {
   REPETICIONES: 'reps',
   SESIONES: 'sesiones',
 };
+
+/** Unidad de una métrica con el plural correcto: "1 sesión", "3 sesiones", "20 min". */
+export function unidadMetrica(metrica: MetricaReto, cantidad: number | null | undefined): string {
+  if (metrica === 'SESIONES' && cantidad === 1) return 'sesión';
+  return ETIQUETA_METRICA[metrica];
+}
 
 /** Ícono (ionicons) para cada actividad del catálogo. */
 export function iconoActividad(nombre: string | null | undefined): string {

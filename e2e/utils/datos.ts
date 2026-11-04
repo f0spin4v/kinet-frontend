@@ -14,6 +14,7 @@ export interface UsuarioPrueba {
   fechaNacimiento: string | null;
   nivelHabilidad: string | null;
   fechaRegistro: string;
+  aceptaPolitica: boolean;
 }
 
 /** Un jugador evaluado. usuario({ nivelHabilidad: null }) es un jugador que aún no hizo la evaluación. */
@@ -30,6 +31,7 @@ export function usuario(cambios: Partial<UsuarioPrueba> = {}): UsuarioPrueba {
     fechaNacimiento: '2001-04-15',
     nivelHabilidad: 'INTERMEDIO',
     fechaRegistro: '2026-09-24T10:00:00',
+    aceptaPolitica: true,
     ...cambios,
   };
 }

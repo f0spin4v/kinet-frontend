@@ -20,7 +20,9 @@
     @if (resultado(); as r) {
       <section class="tarjeta tarjeta--resalte resultado" aria-live="polite">
         <div class="tarjeta__cabecera">
-          <p class="titulo-tarjeta">{{ r.entrenamiento.estado === 'VALIDADO' ? '¡Sesión registrada!' : 'Sesión enviada' }}</p>
+          <p class="titulo-tarjeta">
+            {{ r.entrenamiento.estado === 'VALIDADO' ? '¡Sesión registrada!' : r.entrenamiento.estado === 'RECHAZADO' ? 'Sesión no válida' : 'Sesión enviada' }}
+          </p>
           <span class="chip" [class]="claseEstado(r.entrenamiento.estado)">{{ etiqueta(r.entrenamiento.estado) }}</span>
         </div>
         <div class="rejilla rejilla--metricas">
@@ -29,6 +31,9 @@
           <div class="metrica-chica"><p class="etiqueta">Nivel</p><p class="valor">{{ r.nivel }}</p></div>
           <div class="metrica-chica"><p class="etiqueta">Racha</p><p class="valor">{{ r.rachaActual }}<small>días</small></p></div>
         </div>
+        @if (r.entrenamiento.estado === 'RECHAZADO') {
+          <p class="alert-error" role="alert">Motivo: {{ r.entrenamiento.motivoRechazo || 'la sesión no cumple las reglas de validación.' }}</p>
+        }
         @if (r.subioNivel) {
           <p class="aviso-ok">¡Subiste al nivel {{ r.nivel }}!</p>
         }

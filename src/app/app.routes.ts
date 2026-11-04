@@ -1,5 +1,7 @@
 import { Routes } from '@angular/router';
-import { invitadoGuard, jugadorGuard, pendienteEvaluacionGuard, staffGuard } from './core/guards/auth-guard';
+import {
+  invitadoGuard, jugadorGuard, pendienteEvaluacionGuard, politicaPendienteGuard, staffGuard,
+} from './core/guards/auth-guard';
 
 export const routes: Routes = [
   {
@@ -21,6 +23,17 @@ export const routes: Routes = [
     // el enlace del correo abre esta página (con ?token=...), haya o no una sesión iniciada
     path: 'restablecer-contrasena',
     loadComponent: () => import('./features/auth/restablecer/restablecer.page').then(m => m.RestablecerPage),
+  },
+  {
+    // Ley 1581 de 2012: la política se puede leer siempre, con o sin sesión
+    path: 'politica-datos',
+    loadComponent: () => import('./features/legal/politica.page').then(m => m.PoliticaPage),
+  },
+  {
+    // cuentas creadas por el administrador: el titular acepta la política en su primer ingreso
+    path: 'aceptar-politica',
+    canActivate: [politicaPendienteGuard],
+    loadComponent: () => import('./features/legal/aceptar-politica.page').then(m => m.AceptarPoliticaPage),
   },
   {
     path: 'evaluacion',

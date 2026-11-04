@@ -84,7 +84,7 @@
           </div>
           <p class="texto-suave">{{ r.descripcion }}</p>
           <p class="texto-tenue">
-            Meta {{ r.valorMeta }} {{ unidad[r.metrica] }} · {{ etiqueta(r.periodicidad) }} · {{ etiqueta(r.ambito) }} · +{{ r.xpRecompensa }} XP
+            Meta {{ r.valorMeta }} {{ unidadMetrica(r.metrica, r.valorMeta) }} · {{ etiqueta(r.periodicidad) }} · {{ etiqueta(r.ambito) }} · +{{ r.xpRecompensa }} XP
             @if (r.actividad) { · {{ etiqueta(r.actividad) }} }
             @if (r.nivelHabilidad) { · {{ etiqueta(r.nivelHabilidad) }} }
           </p>

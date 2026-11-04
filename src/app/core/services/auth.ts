@@ -22,6 +22,8 @@ export class AuthService {
   readonly rol = computed<Rol | null>(() => this._usuario()?.rol ?? null);
   readonly esJugador = computed(() => this.rol() === 'JUGADOR');
   readonly esStaff = computed(() => this.rol() === 'ADMINISTRADOR' || this.rol() === 'ENTRENADOR');
+  /** Cuenta creada por el administrador cuyo titular aún no acepta la política de datos (Ley 1581). */
+  readonly pendientePolitica = computed(() => this._usuario()?.aceptaPolitica === false);
   /** Solo los jugadores hacen la evaluación de nivel; el equipo no. */
   readonly evaluado = computed(() => !this.esJugador() || this._usuario()?.nivelHabilidad != null);
   /** "Laura Gómez" */
@@ -32,6 +34,7 @@ export class AuthService {
 
   /** Dónde cae cada rol al entrar. */
   rutaInicial(): string {
+    if (this.pendientePolitica()) return '/aceptar-politica';
     if (this.esStaff()) return '/staff';
     return this.evaluado() ? '/tabs' : '/evaluacion';
   }
@@ -67,6 +70,11 @@ export class AuthService {
 
   restablecerContrasena(token: string, nuevaContrasena: string): Observable<Mensaje> {
     return this.http.post<Mensaje>(`${this.api}/auth/restablecer-contrasena`, { token, nuevaContrasena });
+  }
+
+  /** El titular acepta la política de tratamiento de datos. */
+  aceptarPolitica(): Observable<Usuario> {
+    return this.http.put<Usuario>(`${this.api}/usuarios/me/politica`, {}).pipe(tap(u => this._usuario.set(u)));
   }
 
   /** Para actualizar el nivel después de la evaluación o al editar el perfil. */

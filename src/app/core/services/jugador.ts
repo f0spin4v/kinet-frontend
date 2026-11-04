@@ -150,9 +150,14 @@ export class JugadorService {
     return this.http.post<Evidencia>(`${this.api}/entrenamientos/${id}/evidencia/enlace`, { url });
   }
 
-  /** La evidencia del entrenamiento (404 si no tiene). */
+  /** Datos de la evidencia del entrenamiento, imagen o enlace (null si no tiene). */
   evidencia(id: number): Observable<Evidencia | null> {
-    return this.http.get<Evidencia>(`${this.api}/entrenamientos/${id}/evidencia`).pipe(nuloSiNoExiste<Evidencia | null>());
+    return this.http.get<Evidencia>(`${this.api}/entrenamientos/${id}/evidencia/datos`).pipe(nuloSiNoExiste<Evidencia | null>());
+  }
+
+  /** La imagen de la evidencia como archivo (no es JSON: por eso responseType blob). */
+  imagenEvidencia(id: number): Observable<Blob> {
+    return this.http.get(`${this.api}/entrenamientos/${id}/evidencia`, { responseType: 'blob' });
   }
 
   // ---------- retos ----------

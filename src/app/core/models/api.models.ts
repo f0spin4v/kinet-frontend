@@ -37,6 +37,30 @@ export interface Usuario {
   fechaNacimiento: string | null;
   nivelHabilidad: string | null; // null = aún no hizo la evaluación
   fechaRegistro: string;
+  /** false si la cuenta la creó el administrador y el titular aún no acepta la política (Ley 1581). */
+  aceptaPolitica?: boolean;
+}
+
+/** Cuenta que crea el administrador (POST /api/admin/usuarios). */
+export interface CrearCuentaRequest {
+  nombres: string;
+  apellidos: string;
+  correo: string;
+  contrasena: string;
+  gamertag: string;
+  rol: Rol;
+}
+
+/** Una acción del administrador en la bitácora. */
+export interface AccionAdmin {
+  id: number;
+  correoActor: string;
+  accion: 'CAMBIO_ESTADO' | 'CAMBIO_ROL' | 'CREACION_CUENTA' | 'AJUSTE_XP';
+  idUsuarioAfectado: number | null;
+  correoAfectado: string | null;
+  valorAnterior: string | null;
+  valorNuevo: string | null;
+  fecha: string;
 }
 
 export interface Sesion {
@@ -50,7 +74,7 @@ export interface RegistroRequest {
   correo: string;
   contrasena: string;
   gamertag: string;
-  fechaNacimiento: string | null;
+  fechaNacimiento: string;
   aceptaPolitica: boolean;
 }
 

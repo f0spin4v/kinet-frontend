@@ -18,3 +18,18 @@
     cursor: pointer;
   }
 }
+
+.field__ayuda {
+  font-size: 13px;
+  color: var(--kinet-text-secondary);
+}
+
+.enlace-politica {
+  margin: -4px 0 0 32px;
+  font-size: 14px;
+
+  a {
+    color: var(--kinet-primary);
+    font-weight: 600;
+  }
+}

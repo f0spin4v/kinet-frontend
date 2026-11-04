@@ -80,13 +80,15 @@
       </div>
 
       <div class="field">
-        <label class="field__label" for="fechaNacimiento">Fecha de nacimiento (opcional)</label>
+        <label class="field__label" for="fechaNacimiento">Fecha de nacimiento</label>
         <div class="field__box" [class.field__box--error]="mensaje('fechaNacimiento')">
           <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
-          <input id="fechaNacimiento" type="date" formControlName="fechaNacimiento" [max]="hoy" />
+          <input id="fechaNacimiento" type="date" formControlName="fechaNacimiento" [max]="hace18" aria-describedby="ayuda-edad" />
         </div>
         @if (mensaje('fechaNacimiento'); as msg) {
           <span class="field__error">{{ msg }}</span>
+        } @else {
+          <span class="field__ayuda" id="ayuda-edad">Kinet es solo para mayores de 18 años.</span>
         }
       </div>
 
@@ -94,6 +96,9 @@
         <input type="checkbox" formControlName="aceptaPolitica" />
         <span>Acepto la política de tratamiento de datos personales.</span>
       </label>
+      <p class="enlace-politica">
+        <a routerLink="/politica-datos" target="_blank" rel="noopener">Leer la política de tratamiento de datos</a>
+      </p>
       @if (mensaje('aceptaPolitica'); as msg) {
         <span class="field__error">{{ msg }}</span>
       }
