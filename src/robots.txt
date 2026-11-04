@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /login
+Allow: /register
+Allow: /politica-datos
+Disallow: /
