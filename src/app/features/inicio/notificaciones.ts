@@ -68,13 +68,13 @@ function destinoDe(n: Notificacion): Destino | null {
                   <p class="item__detalle">{{ n.mensaje }}</p>
                   <p class="texto-tenue">
                     {{ etiqueta(n.tipo) }} · {{ fechaRelativa(n.fechaCreacion) }}
-                    @if (destino(n); as d) { · <span class="ver">{{ d.texto }} <ion-icon name="chevron-forward-outline"></ion-icon></span> }
+                    @if (destino(n); as d) { · <span class="ver">{{ d.texto }} <ion-icon name="chevron-forward-outline" aria-hidden="true"></ion-icon></span> }
                   </p>
                 </div>
                 @if (!n.leida) { <span class="punto" aria-label="Sin leer"></span> }
               </button>
               <button type="button" class="fila__borrar" (click)="borrar(n)" aria-label="Borrar notificación">
-                <ion-icon name="trash-outline"></ion-icon>
+                <ion-icon name="trash-outline" aria-hidden="true"></ion-icon>
               </button>
             </li>
           }

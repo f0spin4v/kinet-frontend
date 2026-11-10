@@ -54,7 +54,7 @@ import { mensajeDeError } from '../../core/utils/http-error';
         }
 
         <button type="submit" class="btn-primary" [disabled]="guardando()">
-          @if (guardando()) { <ion-spinner name="crescent"></ion-spinner> } @else { Guardar contraseña }
+          @if (guardando()) { <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner> } @else { Guardar contraseña }
         </button>
       </form>
     </ion-content>

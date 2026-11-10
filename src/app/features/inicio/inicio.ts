@@ -28,7 +28,7 @@ import { HttpErrorResponse } from '@angular/common/http';
     <ion-content [fullscreen]="true">
       <div class="pagina">
         @if (cargando()) {
-          <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+          <div class="cargando-centro"><ion-spinner name="crescent" aria-label="Cargando"></ion-spinner></div>
         } @else if (error()) {
           <p class="alert-error" role="alert">{{ error() }}</p>
           <button type="button" class="btn-secundario" (click)="cargar()">Reintentar</button>
@@ -59,7 +59,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                 <p class="etiqueta">Nivel {{ p.nivel }}</p>
                 <span class="chip chip--info">{{ numero(p.xpTotal) }} XP</span>
               </div>
-              <app-barra-progreso [valor]="p.xpTotal - p.xpInicioNivel"
+              <app-barra-progreso etiqueta="Experiencia hacia el siguiente nivel" [valor]="p.xpTotal - p.xpInicioNivel"
                                   [meta]="(p.xpSiguienteNivel ?? p.xpTotal) - p.xpInicioNivel"
                                   [completado]="p.xpSiguienteNivel === null" />
               <p class="texto-suave">
@@ -89,7 +89,7 @@ import { HttpErrorResponse } from '@angular/common/http';
           <div class="rejilla rejilla--metricas">
             <div class="metrica-chica">
               <p class="etiqueta">Racha</p>
-              <p class="valor"><ion-icon name="flame-outline"></ion-icon> {{ p.rachaActual }}<small>días (máx. {{ p.rachaMaxima }})</small></p>
+              <p class="valor"><ion-icon name="flame-outline" aria-hidden="true"></ion-icon> {{ p.rachaActual }}<small>días (máx. {{ p.rachaMaxima }})</small></p>
             </div>
             <div class="metrica-chica">
               <p class="etiqueta">Esta semana</p>
@@ -123,7 +123,7 @@ import { HttpErrorResponse } from '@angular/common/http';
                       <a [routerLink]="['/tabs/retos', r.idReto]" class="item item--enlace">
                         <div class="item__texto">
                           <p class="item__titulo">{{ r.reto }}</p>
-                          <app-barra-progreso [valor]="r.progreso" [meta]="r.meta" />
+                          <app-barra-progreso etiqueta="Progreso del reto" [valor]="r.progreso" [meta]="r.meta" />
                         </div>
                         <div class="item__lado"><span class="texto-tenue">{{ r.porcentaje }}%</span></div>
                       </a>
@@ -137,18 +137,18 @@ import { HttpErrorResponse } from '@angular/common/http';
               <p class="titulo-seccion">Atajos</p>
               <ul class="lista">
                 <li><a routerLink="/tabs/inicio/notificaciones" class="item item--enlace">
-                  <div class="item__texto"><p class="item__titulo"><ion-icon name="notifications-outline"></ion-icon> Notificaciones</p></div>
+                  <div class="item__texto"><p class="item__titulo"><ion-icon name="notifications-outline" aria-hidden="true"></ion-icon> Notificaciones</p></div>
                   @if (p.notificacionesSinLeer > 0) { <span class="chip chip--error">{{ p.notificacionesSinLeer }}</span> }
                 </a></li>
                 <li><a routerLink="/tabs/inicio/logros" class="item item--enlace">
-                  <div class="item__texto"><p class="item__titulo"><ion-icon name="ribbon-outline"></ion-icon> Logros</p></div>
+                  <div class="item__texto"><p class="item__titulo"><ion-icon name="ribbon-outline" aria-hidden="true"></ion-icon> Logros</p></div>
                   <span class="chip chip--ok">{{ p.logros }}</span>
                 </a></li>
                 <li><a routerLink="/tabs/inicio/xp" class="item item--enlace">
-                  <div class="item__texto"><p class="item__titulo"><ion-icon name="trending-up-outline"></ion-icon> Movimientos de XP</p></div>
+                  <div class="item__texto"><p class="item__titulo"><ion-icon name="trending-up-outline" aria-hidden="true"></ion-icon> Movimientos de XP</p></div>
                 </a></li>
                 <li><a routerLink="/tabs/entrenar" class="item item--enlace">
-                  <div class="item__texto"><p class="item__titulo"><ion-icon name="time-outline"></ion-icon> Historial de entrenamientos</p></div>
+                  <div class="item__texto"><p class="item__titulo"><ion-icon name="time-outline" aria-hidden="true"></ion-icon> Historial de entrenamientos</p></div>
                 </a></li>
               </ul>
             </section>

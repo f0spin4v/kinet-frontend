@@ -69,7 +69,7 @@
                  formControlName="contrasena" autocomplete="new-password" placeholder="••••••••" />
           <button type="button" class="field__toggle" (click)="verContrasena.set(!verContrasena())"
                   [attr.aria-label]="verContrasena() ? 'Ocultar contraseña' : 'Mostrar contraseña'">
-            <ion-icon [name]="verContrasena() ? 'eye-off-outline' : 'eye-outline'"></ion-icon>
+            <ion-icon [name]="verContrasena() ? 'eye-off-outline' : 'eye-outline'" aria-hidden="true"></ion-icon>
           </button>
         </div>
         @if (mensaje('contrasena'); as msg) {
@@ -109,7 +109,7 @@
 
       <button type="submit" class="btn-primary" [disabled]="cargando()">
         @if (cargando()) {
-          <ion-spinner name="crescent"></ion-spinner>
+          <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner>
         } @else {
           Crear cuenta
         }

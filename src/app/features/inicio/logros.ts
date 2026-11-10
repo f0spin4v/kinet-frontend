@@ -22,7 +22,7 @@ import { mensajeDeError } from '../../core/utils/http-error';
     <ion-content>
       <div class="pagina">
         @if (cargando()) {
-          <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+          <div class="cargando-centro"><ion-spinner name="crescent" aria-label="Cargando"></ion-spinner></div>
         } @else if (error()) {
           <p class="alert-error" role="alert">{{ error() }}</p>
         } @else {

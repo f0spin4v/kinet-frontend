@@ -31,7 +31,7 @@ import { PieListaComponent } from '../shared/components/pie-lista/pie-lista';
             <h1>Temporadas</h1>
             <p class="titulo-pagina__lead">Solo una puede estar activa. Al cerrarla se reparten ascensos y descensos.</p>
           </div>
-          <button type="button" class="btn-primary nueva" (click)="abrirNueva()"><ion-icon name="add-outline"></ion-icon>&nbsp;Nueva</button>
+          <button type="button" class="btn-primary nueva" (click)="abrirNueva()"><ion-icon name="add-outline" aria-hidden="true"></ion-icon>&nbsp;Nueva</button>
         </div>
 
         @if (formAbierto()) {

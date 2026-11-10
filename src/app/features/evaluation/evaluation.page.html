@@ -11,7 +11,7 @@
     @switch (estado()) {
       @case ('cargando') {
         <div class="eval__centro">
-          <ion-spinner name="crescent"></ion-spinner>
+          <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner>
           <p>Preparando tu evaluación…</p>
         </div>
       }
@@ -71,7 +71,7 @@
                         (click)="responder(o.id)">
                   <span class="opcion__fila">
                     <span class="opcion__flecha" aria-hidden="true">
-                      <ion-icon name="arrow-forward"></ion-icon>
+                      <ion-icon name="arrow-forward" aria-hidden="true"></ion-icon>
                     </span>
                   </span>
                   <span class="opcion__titulo">{{ o.titulo }}</span>
@@ -91,7 +91,7 @@
 
         <div class="eval__nota">
           @if (estado() === 'enviando') {
-            <ion-spinner name="crescent"></ion-spinner>
+            <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner>
             <p>Calculando tu nivel…</p>
           } @else {
             <span class="nota__titulo">

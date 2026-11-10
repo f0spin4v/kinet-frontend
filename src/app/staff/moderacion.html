@@ -43,8 +43,8 @@
               @if (p.entrenamiento.notas) { <div class="kv"><dt>Notas</dt><dd>{{ p.entrenamiento.notas }}</dd></div> }
             </dl>
             <div class="acciones">
-              <button type="button" class="btn-primary" [disabled]="trabajando()" (click)="aprobar(p)"><ion-icon name="checkmark-outline"></ion-icon>&nbsp;Aprobar</button>
-              <button type="button" class="btn-peligro" [disabled]="trabajando()" (click)="rechazar(p)"><ion-icon name="close-outline"></ion-icon>&nbsp;Rechazar</button>
+              <button type="button" class="btn-primary" [disabled]="trabajando()" (click)="aprobar(p)"><ion-icon name="checkmark-outline" aria-hidden="true"></ion-icon>&nbsp;Aprobar</button>
+              <button type="button" class="btn-peligro" [disabled]="trabajando()" (click)="rechazar(p)"><ion-icon name="close-outline" aria-hidden="true"></ion-icon>&nbsp;Rechazar</button>
             </div>
           </article>
         }

@@ -87,7 +87,7 @@ const REGLAS: Record<TipoCompetencia, { min: number; max: number; ayuda: string 
         <div class="field">
           <label class="field__label">Invitados ({{ seleccion().length }} de {{ reglas().min }}@if (reglas().max !== reglas().min) { a {{ reglas().max }} })</label>
           @if (cargando()) {
-            <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+            <div class="cargando-centro"><ion-spinner name="crescent" aria-label="Cargando"></ion-spinner></div>
           } @else if (candidatos().length === 0) {
             <p class="texto-suave">No hay otros jugadores para invitar todavía.</p>
           } @else {
@@ -111,7 +111,7 @@ const REGLAS: Record<TipoCompetencia, { min: number; max: number; ayuda: string 
         @if (error()) { <p class="alert-error" role="alert">{{ error() }}</p> }
 
         <button type="submit" class="btn-primary" [disabled]="enviando()">
-          @if (enviando()) { <ion-spinner name="crescent"></ion-spinner> } @else { Enviar invitaciones }
+          @if (enviando()) { <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner> } @else { Enviar invitaciones }
         </button>
       </form>
     </ion-content>

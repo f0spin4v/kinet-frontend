@@ -17,7 +17,7 @@ import { mensajeDeError } from '../core/utils/http-error';
   imports: [ReactiveFormsModule, IonIcon, IonSpinner],
   template: `
     <div class="acciones barra">
-      <button type="button" class="btn-primary" (click)="abrirNueva()"><ion-icon name="add-outline"></ion-icon>&nbsp;Nueva pregunta</button>
+      <button type="button" class="btn-primary" (click)="abrirNueva()"><ion-icon name="add-outline" aria-hidden="true"></ion-icon>&nbsp;Nueva pregunta</button>
     </div>
 
     @if (formAbierto()) {
@@ -46,11 +46,11 @@ import { mensajeDeError } from '../core/utils/http-error';
                 <div class="field__box"><input type="number" min="1" max="10" formControlName="puntaje" /></div></div>
             </div>
             @if (opciones.length > 2) {
-              <button type="button" class="btn-chico btn-peligro" (click)="quitarOpcion(i)"><ion-icon name="trash-outline"></ion-icon>&nbsp;Quitar</button>
+              <button type="button" class="btn-chico btn-peligro" (click)="quitarOpcion(i)"><ion-icon name="trash-outline" aria-hidden="true"></ion-icon>&nbsp;Quitar</button>
             }
           </fieldset>
         }
-        <button type="button" class="btn-secundario" (click)="agregarOpcion()"><ion-icon name="add-outline"></ion-icon>&nbsp;Agregar opción</button>
+        <button type="button" class="btn-secundario" (click)="agregarOpcion()"><ion-icon name="add-outline" aria-hidden="true"></ion-icon>&nbsp;Agregar opción</button>
         @if (editando()) {
           <p class="texto-tenue">Las opciones solo se pueden cambiar si nadie ha respondido la pregunta.</p>
         }
@@ -66,7 +66,7 @@ import { mensajeDeError } from '../core/utils/http-error';
     @if (ok()) { <p class="aviso-ok" role="status">{{ ok() }}</p> }
 
     @if (cargando()) {
-      <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+      <div class="cargando-centro"><ion-spinner name="crescent" aria-label="Cargando"></ion-spinner></div>
     } @else {
       <div class="rejilla rejilla--2">
         @for (p of preguntas(); track p.id) {

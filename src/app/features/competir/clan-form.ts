@@ -44,7 +44,7 @@ import { mensajeDeError } from '../../core/utils/http-error';
         @if (error()) { <p class="alert-error" role="alert">{{ error() }}</p> }
 
         <button type="submit" class="btn-primary" [disabled]="guardando()">
-          @if (guardando()) { <ion-spinner name="crescent"></ion-spinner> } @else { {{ id() ? 'Guardar cambios' : 'Crear clan' }} }
+          @if (guardando()) { <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner> } @else { {{ id() ? 'Guardar cambios' : 'Crear clan' }} }
         </button>
       </form>
     </ion-content>

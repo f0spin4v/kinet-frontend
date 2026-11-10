@@ -127,7 +127,7 @@
 
         <button type="submit" class="btn-primary btn-guardar" [disabled]="enviando()">
           @if (enviando()) {
-            <ion-spinner name="crescent"></ion-spinner>
+            <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner>
           } @else {
             <ion-icon name="checkmark-circle-outline" aria-hidden="true"></ion-icon>
             Guardar entrenamiento
@@ -165,7 +165,7 @@
                     <span class="avance__titulo">{{ a.titulo }}</span>
                     <span class="avance__cifra">{{ a.progresoActual }}/{{ a.meta }}</span>
                   </div>
-                  <app-barra-progreso [valor]="a.progresoActual" [meta]="a.meta" [completado]="a.completado" />
+                  <app-barra-progreso etiqueta="Progreso del reto" [valor]="a.progresoActual" [meta]="a.meta" [completado]="a.completado" />
                   @if (a.completado) {
                     <p class="avance__premio">
                       <ion-icon name="trophy" aria-hidden="true"></ion-icon>

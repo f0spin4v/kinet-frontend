@@ -3,7 +3,7 @@ import { Component, computed, input } from '@angular/core';
 @Component({
   selector: 'app-barra-progreso',
   template: `
-    <div class="pista" role="progressbar"
+    <div class="pista" role="progressbar" [attr.aria-label]="etiqueta()"
          aria-valuemin="0" [attr.aria-valuenow]="valor()" [attr.aria-valuemax]="meta()">
       <div class="barra" [class.barra--completa]="completado()" [style.width.%]="porcentaje()"></div>
     </div>
@@ -32,6 +32,8 @@ export class BarraProgresoComponent {
   valor = input.required<number>();
   meta = input.required<number>();
   completado = input(false);
+  /** nombre accesible de la barra (WCAG 4.1.2) */
+  etiqueta = input('Progreso');
 
   porcentaje = computed(() => (this.meta() > 0 ? Math.min(100, (this.valor() / this.meta()) * 100) : 0));
 }

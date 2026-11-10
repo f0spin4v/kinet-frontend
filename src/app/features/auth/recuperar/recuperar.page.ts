@@ -49,7 +49,7 @@ import { mensajeDeError } from '../../../core/utils/http-error';
             }
 
             <button type="submit" class="btn-primary" [disabled]="cargando()">
-              @if (cargando()) { <ion-spinner name="crescent"></ion-spinner> } @else { Enviar enlace }
+              @if (cargando()) { <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner> } @else { Enviar enlace }
             </button>
           </form>
         }

@@ -33,7 +33,7 @@ import { PieListaComponent } from '../shared/components/pie-lista/pie-lista';
             <p class="titulo-pagina__lead">Soporte de usuarios: estado, rol y ajustes de XP.</p>
           </div>
           <button type="button" class="btn-primary nueva" (click)="formAbierto.set(!formAbierto())">
-            <ion-icon name="add-outline"></ion-icon>&nbsp;{{ formAbierto() ? 'Cerrar' : 'Crear cuenta' }}
+            <ion-icon name="add-outline" aria-hidden="true"></ion-icon>&nbsp;{{ formAbierto() ? 'Cerrar' : 'Crear cuenta' }}
           </button>
         </div>
 
@@ -65,7 +65,7 @@ import { PieListaComponent } from '../shared/components/pie-lista/pie-lista';
           <div class="campos campos--2">
             <div class="field">
               <label class="field__label" for="f1">Buscar por correo</label>
-              <div class="field__box"><ion-icon name="search-outline"></ion-icon>
+              <div class="field__box"><ion-icon name="search-outline" aria-hidden="true"></ion-icon>
                 <input id="f1" name="correo" [(ngModel)]="correo" placeholder="laura@kinet.com" /></div>
             </div>
             <div class="field">

@@ -13,7 +13,7 @@ import { ListaPaginada } from '../../../core/utils/lista-paginada';
       <p class="alert-error" role="alert">{{ e }}</p>
     }
     @if (lista().cargando()) {
-      <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+      <div class="cargando-centro"><ion-spinner name="crescent" aria-label="Cargando"></ion-spinner></div>
     } @else if (lista().cargada() && lista().items().length === 0 && !lista().error()) {
       <div class="vacio">
         <ion-icon name="file-tray-outline" aria-hidden="true"></ion-icon>

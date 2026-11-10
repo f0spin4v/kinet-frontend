@@ -17,7 +17,7 @@ const METRICAS = ['ENTRENAMIENTOS', 'MINUTOS', 'RACHA', 'XP', 'NIVEL', 'RETOS', 
   imports: [ReactiveFormsModule, IonIcon, IonSpinner],
   template: `
     <div class="acciones barra">
-      <button type="button" class="btn-primary" (click)="abrirNuevo()"><ion-icon name="add-outline"></ion-icon>&nbsp;Nuevo logro</button>
+      <button type="button" class="btn-primary" (click)="abrirNuevo()"><ion-icon name="add-outline" aria-hidden="true"></ion-icon>&nbsp;Nuevo logro</button>
     </div>
 
     @if (formAbierto()) {
@@ -50,7 +50,7 @@ const METRICAS = ['ENTRENAMIENTOS', 'MINUTOS', 'RACHA', 'XP', 'NIVEL', 'RETOS', 
     @if (ok()) { <p class="aviso-ok" role="status">{{ ok() }}</p> }
 
     @if (cargando()) {
-      <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+      <div class="cargando-centro"><ion-spinner name="crescent" aria-label="Cargando"></ion-spinner></div>
     } @else {
       <div class="rejilla rejilla--3">
         @for (l of logros(); track l.id) {

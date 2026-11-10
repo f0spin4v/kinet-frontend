@@ -74,7 +74,7 @@
 
     <button type="submit" class="btn-primary" [disabled]="guardando() || form.pristine">
       @if (guardando()) {
-        <ion-spinner name="crescent"></ion-spinner>
+        <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner>
       } @else {
         Guardar cambios
       }

@@ -22,7 +22,7 @@ import { tiempoRestante } from '../../core/utils/fechas';
     <ion-content>
       <div class="pagina pagina--estrecha">
         @if (cargando()) {
-          <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+          <div class="cargando-centro"><ion-spinner name="crescent" aria-label="Cargando"></ion-spinner></div>
         } @else if (e(); as e) {
           <section class="tarjeta tarjeta--resalte">
             <div class="tarjeta__cabecera">
@@ -68,7 +68,7 @@ import { tiempoRestante } from '../../core/utils/fechas';
     .jugador__nombre { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
     .jugador__puntaje { margin: 0; font-family: var(--kinet-font-display); font-weight: 700; font-size: 28px; }
     .jugador__puntaje small { font-size: 12px; color: var(--kinet-text-muted); }
-    .aviso-info { margin: 12px 0; background: rgba(255, 176, 32, 0.14); color: #b87400; }
+    .aviso-info { margin: 12px 0; background: rgba(255, 176, 32, 0.14); color: var(--kinet-aviso-text); }
     .vs { font-family: var(--kinet-font-display); font-weight: 700; color: var(--kinet-text-muted); }
   `,
 })

@@ -26,7 +26,7 @@ import { BarraProgresoComponent } from '../../shared/components/barra-progreso/b
     <ion-content>
       <div class="pagina pagina--estrecha">
         @if (cargando()) {
-          <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+          <div class="cargando-centro"><ion-spinner name="crescent" aria-label="Cargando"></ion-spinner></div>
         } @else if (reto(); as r) {
           <section class="tarjeta">
             <div class="tarjeta__cabecera">
@@ -56,7 +56,7 @@ import { BarraProgresoComponent } from '../../shared/components/barra-progreso/b
                 <p class="titulo-tarjeta">{{ p.progreso }} / {{ p.meta }} {{ unidadMetrica(p.metrica, p.meta) }}</p>
                 <span class="chip" [class]="claseEstado(p.estado)">{{ etiqueta(p.estado) }}</span>
               </div>
-              <app-barra-progreso [valor]="p.progreso" [meta]="p.meta" [completado]="p.estado === 'COMPLETADO'" />
+              <app-barra-progreso etiqueta="Progreso del reto" [valor]="p.progreso" [meta]="p.meta" [completado]="p.estado === 'COMPLETADO'" />
               @if (p.progresoClan !== null) {
                 <p class="texto-suave">Progreso de todo el clan: {{ p.progresoClan }} {{ unidadMetrica(p.metrica, p.progresoClan) }}</p>
               }
@@ -95,7 +95,7 @@ import { BarraProgresoComponent } from '../../shared/components/barra-progreso/b
             </section>
           } @else if (r.estado === 'ACTIVO') {
             <button type="button" class="btn-primary" [disabled]="trabajando()" (click)="unirse(r)">
-              @if (trabajando()) { <ion-spinner name="crescent"></ion-spinner> } @else { Unirme al reto }
+              @if (trabajando()) { <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner> } @else { Unirme al reto }
             </button>
           }
         } @else if (error()) {
