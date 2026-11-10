@@ -5,7 +5,7 @@ import { AlertController, IonContent, IonHeader, IonIcon, IonToolbar, ViewWillEn
 import { addIcons } from 'ionicons';
 import { addOutline, searchOutline } from 'ionicons/icons';
 import { Observable, finalize } from 'rxjs';
-import { AccionAdmin, EstadoUsuario, Rol, Usuario } from '../core/models/api.models';
+import { AccionAdmin, AutorizacionMenor, EstadoUsuario, Parentesco, Rol, Usuario } from '../core/models/api.models';
 import { AuthService } from '../core/services/auth';
 import { StaffService } from '../core/services/staff';
 import { claseEstado, etiqueta, fechaLarga } from '../core/utils/formato';
@@ -61,6 +61,50 @@ import { PieListaComponent } from '../shared/components/pie-lista/pie-lista';
           </form>
         }
 
+        @if (autorizando(); as u) {
+          <section class="tarjeta formulario" aria-labelledby="titulo-autorizacion">
+            <p class="titulo-seccion" id="titulo-autorizacion">Autorización del representante legal · {{ u.nombres }} {{ u.apellidos }}</p>
+            @if (autorizacion(); as a) {
+              <p>
+                <span class="chip" [class]="claseEstado(a.estado)">{{ etiqueta(a.estado) }}</span>
+                {{ a.nombreRepresentante }} ({{ etiqueta(a.parentesco) }}) · {{ a.correoRepresentante }}
+                @if (a.canal) { · por {{ a.canal === 'CORREO' ? 'correo' : 'documento firmado' }} }
+                @if (a.fechaRespuesta) { · {{ fechaLarga(a.fechaRespuesta) }} }
+              </p>
+              @if (a.soporte) { <p class="texto-tenue">Soporte: {{ a.soporte }}</p> }
+            } @else {
+              <p class="texto-tenue">Esta cuenta no tiene una autorización registrada.</p>
+            }
+            @if (autorizacion()?.estado === 'AUTORIZADA') {
+              <button type="button" class="btn-chico btn-peligro" [disabled]="trabajando()" (click)="revocar(u)">Revocar autorización</button>
+            } @else {
+              <form [formGroup]="firmada" (ngSubmit)="registrarAutorizacion(u)" novalidate class="formulario">
+                <p class="texto-suave">Registra aquí una autorización firmada por la madre, el padre o el tutor (Ley 1581, Decreto 1377 art. 12). Guarda el documento y escribe dónde quedó.</p>
+                <div class="campos campos--2">
+                  <div class="field"><label class="field__label" for="a1">Nombre del representante</label>
+                    <div class="field__box"><input id="a1" formControlName="nombreRepresentante" maxlength="160" /></div></div>
+                  <div class="field"><label class="field__label" for="a2">Correo del representante</label>
+                    <div class="field__box"><input id="a2" type="email" formControlName="correoRepresentante" /></div></div>
+                  <div class="field"><label class="field__label" for="a3">Parentesco</label>
+                    <div class="field__box"><select id="a3" formControlName="parentesco">
+                      <option value="MADRE">Madre</option><option value="PADRE">Padre</option><option value="TUTOR_LEGAL">Tutor o representante legal</option>
+                    </select></div></div>
+                  @if (!u.fechaNacimiento) {
+                    <div class="field"><label class="field__label" for="a5">Fecha de nacimiento del titular</label>
+                      <div class="field__box"><input id="a5" type="date" formControlName="fechaNacimiento" /></div></div>
+                  }
+                </div>
+                <div class="field"><label class="field__label" for="a4">Soporte (qué documento es y dónde está guardado)</label>
+                  <div class="field__box"><input id="a4" formControlName="soporte" maxlength="300" placeholder="Autorización firmada el 10/11/2026, escaneada en Drive/Kinet/Autorizaciones" /></div></div>
+                <div class="acciones">
+                  <button type="submit" class="btn-primary" [disabled]="trabajando()">Registrar autorización</button>
+                  <button type="button" class="btn-secundario" (click)="cerrarAutorizacion()">Cerrar</button>
+                </div>
+              </form>
+            }
+          </section>
+        }
+
         <form class="tarjeta filtros" (ngSubmit)="buscar()">
           <div class="campos campos--2">
             <div class="field">
@@ -93,6 +137,7 @@ import { PieListaComponent } from '../shared/components/pie-lista/pie-lista';
                   <td>
                     <strong>{{ u.nombres }} {{ u.apellidos }}</strong><br />
                     <span class="texto-tenue">{{ u.correo }}@if (u.gamertag) { · &#64;{{ u.gamertag }} }</span>
+                    @if (u.menorDeEdad) { <br /><span class="chip chip--aviso">Menor de edad</span> }
                   </td>
                   <td>
                     <div class="field__box celda">
@@ -107,6 +152,7 @@ import { PieListaComponent } from '../shared/components/pie-lista/pie-lista';
                       <select [ngModel]="u.estado" [disabled]="u.id === miId() || trabajando()" (ngModelChange)="cambiarEstado(u, $event)"
                               [attr.aria-label]="'Estado de ' + u.correo" name="estado{{ u.id }}">
                         @for (e of estados; track e) { <option [value]="e">{{ etiqueta(e) }}</option> }
+                        @if (u.estado === 'PENDIENTE') { <option value="PENDIENTE" disabled>Pendiente</option> }
                       </select>
                     </div>
                   </td>
@@ -114,6 +160,9 @@ import { PieListaComponent } from '../shared/components/pie-lista/pie-lista';
                   <td>
                     @if (u.rol === 'JUGADOR') {
                       <button type="button" class="btn-chico" [disabled]="trabajando()" (click)="ajustarXp(u)">Ajustar XP</button>
+                    }
+                    @if (u.menorDeEdad || u.estado === 'PENDIENTE') {
+                      <button type="button" class="btn-chico" [disabled]="trabajando()" (click)="abrirAutorizacion(u)">Autorización</button>
                     }
                   </td>
                 </tr>
@@ -153,6 +202,8 @@ import { PieListaComponent } from '../shared/components/pie-lista/pie-lista';
     .formulario, .filtros { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
     .celda { height: 40px; padding: 0 8px; min-width: 130px; }
     .celda select { font-size: 14px; }
+    .acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+    .acciones button { width: auto; padding: 0 18px; }
     .oculta-movil { display: none; }
     @media (min-width: 768px) { .oculta-movil { display: table-cell; } }
   `,
@@ -174,6 +225,9 @@ export class CuentasPage implements ViewWillEnter {
   miId = () => this.auth.usuario()?.id ?? -1;
 
   formAbierto = signal(false);
+  /** RN-33: cuenta de un menor cuya autorización se está viendo o registrando. */
+  autorizando = signal<Usuario | null>(null);
+  autorizacion = signal<AutorizacionMenor | null>(null);
   trabajando = signal(false);
   error = signal<string | null>(null);
   ok = signal<string | null>(null);
@@ -185,6 +239,14 @@ export class CuentasPage implements ViewWillEnter {
     gamertag: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30), Validators.pattern(/^[A-Za-z0-9_]+$/)]],
     contrasena: ['', [Validators.required, Validators.minLength(8), Validators.pattern(/^(?=.*[A-Za-z])(?=.*\d).+$/)]],
     rol: ['JUGADOR' as Rol],
+  });
+
+  firmada = this.fb.nonNullable.group({
+    nombreRepresentante: ['', [Validators.required, Validators.maxLength(160)]],
+    correoRepresentante: ['', [Validators.required, Validators.email, Validators.maxLength(120)]],
+    parentesco: ['MADRE' as Parentesco, Validators.required],
+    soporte: ['', [Validators.required, Validators.minLength(10), Validators.maxLength(300)]],
+    fechaNacimiento: [''],
   });
 
   etiqueta = etiqueta;
@@ -202,9 +264,63 @@ export class CuentasPage implements ViewWillEnter {
 
   /** "Bloqueado → Activo", "Jugador → Entrenador" o el detalle del ajuste. */
   detalleAccion(a: AccionAdmin): string {
-    if (a.accion === 'AJUSTE_XP') return a.valorNuevo ?? '—';
+    if (a.accion === 'AJUSTE_XP' || a.accion === 'AUTORIZACION_MENOR') return a.valorNuevo ?? '—';
     if (a.accion === 'CREACION_CUENTA') return `Rol: ${etiqueta(a.valorNuevo)}`;
     return `${etiqueta(a.valorAnterior)} → ${etiqueta(a.valorNuevo)}`;
+  }
+
+  abrirAutorizacion(u: Usuario): void {
+    this.autorizando.set(u);
+    this.autorizacion.set(null);
+    this.firmada.reset({ parentesco: 'MADRE' });
+    this.staff.autorizacionMenor(u.id).subscribe({
+      next: a => {
+        this.autorizacion.set(a);
+        this.firmada.patchValue({ nombreRepresentante: a.nombreRepresentante, correoRepresentante: a.correoRepresentante, parentesco: a.parentesco });
+      },
+      error: () => this.autorizacion.set(null), // 404: todavía no hay ninguna
+    });
+  }
+
+  cerrarAutorizacion(): void {
+    this.autorizando.set(null);
+    this.autorizacion.set(null);
+  }
+
+  registrarAutorizacion(u: Usuario): void {
+    if (this.firmada.invalid) {
+      this.firmada.markAllAsTouched();
+      this.error.set('Revisa los datos: nombre, correo y parentesco del representante, y un soporte de al menos 10 caracteres.');
+      return;
+    }
+    const v = this.firmada.getRawValue();
+    this.ejecutar(this.staff.registrarAutorizacion(u.id, {
+      nombreRepresentante: v.nombreRepresentante.trim(), correoRepresentante: v.correoRepresentante.trim(),
+      parentesco: v.parentesco, soporte: v.soporte.trim(), ...(v.fechaNacimiento ? { fechaNacimiento: v.fechaNacimiento } : {}),
+    }), () => `Autorización registrada: la cuenta de ${u.correo} quedó activa.`, () => {
+      this.cerrarAutorizacion();
+      this.lista.recargar();
+    });
+  }
+
+  async revocar(u: Usuario): Promise<void> {
+    const alerta = await this.alertas.create({
+      header: 'Revocar la autorización',
+      message: 'La cuenta quedará inactiva. Escribe el motivo (queda en la bitácora).',
+      inputs: [{ name: 'motivo', type: 'text', placeholder: 'Motivo', attributes: { maxlength: 150 } }],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        { text: 'Revocar', role: 'confirm', handler: (d: { motivo: string }) => (d.motivo?.trim().length ?? 0) >= 5 },
+      ],
+    });
+    await alerta.present();
+    const { role, data } = await alerta.onDidDismiss();
+    if (role !== 'confirm') return;
+    this.ejecutar(this.staff.revocarAutorizacion(u.id, (data.values as { motivo: string }).motivo.trim()),
+      () => `Autorización revocada: la cuenta de ${u.correo} quedó inactiva.`, () => {
+        this.cerrarAutorizacion();
+        this.lista.recargar();
+      });
   }
 
   buscar(): void {

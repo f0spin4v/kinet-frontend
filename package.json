@@ -1,7 +1,8 @@
 {
   "name": "frontend",
   "version": "0.0.1",
-  "author": "Ionic Framework",
+  "author": "Natalia Tejada Cardona, Juan Pablo Mora Ramirez y Andres Felipe Ospina Vera",
+  "license": "MIT",
   "homepage": "https://ionicframework.com/",
   "scripts": {
     "ng": "ng",

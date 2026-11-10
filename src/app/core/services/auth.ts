@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Preferences } from '@capacitor/preferences';
 import { Observable, firstValueFrom, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { LoginRequest, Mensaje, RegistroRequest, Rol, Sesion, Usuario } from '../models/api.models';
+import { LoginRequest, Mensaje, RegistroRequest, Rol, Sesion, SolicitudAutorizacion, Usuario } from '../models/api.models';
 
 const TOKEN_KEY = 'kinet_token';
 
@@ -88,7 +88,23 @@ export class AuthService {
     await Preferences.remove({ key: TOKEN_KEY });
   }
 
+  /** RN-33: el menor pide que su representante reciba otra vez el correo. */
+  reenviarAutorizacion(correo: string): Observable<Mensaje> {
+    return this.http.post<Mensaje>(`${this.api}/auth/autorizacion/reenvio`, { correo });
+  }
+
+  /** El representante abre el enlace del correo (no necesita cuenta). */
+  consultarAutorizacion(token: string): Observable<SolicitudAutorizacion> {
+    return this.http.post<SolicitudAutorizacion>(`${this.api}/autorizaciones/consulta`, { token });
+  }
+
+  responderAutorizacion(token: string, autoriza: boolean): Observable<Mensaje> {
+    return this.http.post<Mensaje>(`${this.api}/autorizaciones/respuesta`, { token, autoriza });
+  }
+
   private guardarSesion(r: Sesion): void {
+    // un menor recién registrado no recibe sesión hasta que su representante autorice
+    if (!r.token) return;
     this._token.set(r.token);
     this._usuario.set(r.usuario);
     Preferences.set({ key: TOKEN_KEY, value: r.token });

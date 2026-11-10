@@ -7,7 +7,7 @@ import {
   PreguntaAdmin, Regla, AccionAdmin, CrearCuentaRequest,
   EstadoReto, EstadoEvidencia, EstadoUsuario, Evidencia, EntrenamientoPendiente, GuardarRetoRequest,
   GuardarTemporadaRequest, Mensaje, MovimientoXp, Pagina, ResultadoEntrenamiento, ResumenAnalitica, Reto, Rol,
-  Temporada, Usuario,
+  Temporada, Usuario, AutorizacionMenor, RegistrarAutorizacionRequest,
 } from '../models/api.models';
 
 function paginacion(pagina: number, tamanio: number): HttpParams {
@@ -75,6 +75,19 @@ export class StaffService {
    * Alta de una cuenta de cualquier rol (POST /api/admin/usuarios). El administrador NO acepta la política de
    * datos por el titular: la acepta él mismo en su primer ingreso (Ley 1581 de 2012). Queda en la bitácora.
    */
+  /** RN-33: autorización del representante legal de un menor de 14 a 17 años. */
+  autorizacionMenor(idUsuario: number): Observable<AutorizacionMenor> {
+    return this.http.get<AutorizacionMenor>(`${this.api}/admin/usuarios/${idUsuario}/autorizacion-menor`);
+  }
+
+  registrarAutorizacion(idUsuario: number, datos: RegistrarAutorizacionRequest): Observable<AutorizacionMenor> {
+    return this.http.post<AutorizacionMenor>(`${this.api}/admin/usuarios/${idUsuario}/autorizacion-menor`, datos);
+  }
+
+  revocarAutorizacion(idUsuario: number, motivo: string): Observable<AutorizacionMenor> {
+    return this.http.post<AutorizacionMenor>(`${this.api}/admin/usuarios/${idUsuario}/autorizacion-menor/revocacion`, { motivo });
+  }
+
   crearCuenta(datos: CrearCuentaRequest): Observable<Usuario> {
     return this.http.post<Usuario>(`${this.api}/admin/usuarios`, datos);
   }
