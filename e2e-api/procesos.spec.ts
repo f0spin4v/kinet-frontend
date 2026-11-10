@@ -101,6 +101,8 @@ test('RN-33: un menor queda pendiente y el administrador registra la autorizaci�
   await expect(page.getByRole('alert')).toContainText('representante legal');
 
   await iniciarSesion(page, 'admin@kinet.com', 'Admin2026');
+  // espera a que la sesión quede guardada antes de navegar (si no, el guard devuelve al inicio de sesión)
+  await page.waitForURL(/\/staff/);
   await page.goto('/staff/cuentas');
   await page.getByLabel('Buscar por correo').fill(menor.correo);
   await page.getByRole('button', { name: 'Buscar', exact: true }).click();
