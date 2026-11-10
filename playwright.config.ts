@@ -6,7 +6,8 @@ import { defineConfig, devices } from '@playwright/test';
  * - npm run e2e        → solo las pruebas @principal, con el navegador visible y en cámara lenta (proyecto "visual").
  * - npm run e2e:todas  → todas las pruebas, en escritorio y en un celular emulado (proyectos "escritorio" y "movil").
  *
- * La API se simula en cada prueba (e2e/utils/api.ts), así que no hace falta el backend ni Oracle.
+ * La API se simula en cada prueba (e2e/utils/api.ts), así que no hace falta el backend ni Oracle. El proyecto
+ * "api-real" (e2e-api/) es la excepción: recorre los tres procesos contra la API real (KAN-80).
  * Playwright levanta "npm start" solo; si ya hay un ng serve en el puerto 4200, lo reutiliza.
  */
 export default defineConfig({
@@ -40,6 +41,8 @@ export default defineConfig({
       },
     },
     { name: 'escritorio', use: { ...devices['Desktop Chrome'] } },
+    // KAN-80: contra la API real (backend y Oracle levantados aparte); solo lo usa el workflow e2e-api-real.yml
+    { name: 'api-real', testDir: './e2e-api', use: { ...devices['Desktop Chrome'] }, timeout: 60_000 },
     { name: 'movil', use: { ...devices['Pixel 7'] } },
   ],
   webServer: {
