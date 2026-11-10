@@ -54,7 +54,7 @@ type Pestana = 'disponibles' | 'mios';
                   @if (r.actividad) { · {{ etiqueta(r.actividad) }} }
                 </p>
                 @if (r.participacion; as p) {
-                  <app-barra-progreso [valor]="p.progreso" [meta]="p.meta" [completado]="p.estado === 'COMPLETADO'" />
+                  <app-barra-progreso etiqueta="Progreso del reto" [valor]="p.progreso" [meta]="p.meta" [completado]="p.estado === 'COMPLETADO'" />
                   <span class="chip" [class]="claseEstado(p.estado)">{{ etiqueta(p.estado) }}</span>
                 }
               </a>
@@ -69,7 +69,7 @@ type Pestana = 'disponibles' | 'mios';
                   <h2 class="titulo-tarjeta">{{ p.reto }}</h2>
                   <span class="chip" [class]="claseEstado(p.estado)">{{ etiqueta(p.estado) }}</span>
                 </div>
-                <app-barra-progreso [valor]="p.progreso" [meta]="p.meta" [completado]="p.estado === 'COMPLETADO'" />
+                <app-barra-progreso etiqueta="Progreso del reto" [valor]="p.progreso" [meta]="p.meta" [completado]="p.estado === 'COMPLETADO'" />
                 <p class="texto-tenue">
                   {{ p.progreso }} / {{ p.meta }} {{ unidadMetrica(p.metrica, p.meta) }} ({{ p.porcentaje }}%)
                   @if (p.estado === 'EN_CURSO') { · {{ tiempoRestante(p.fechaLimite) }} }

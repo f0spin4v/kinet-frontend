@@ -31,7 +31,7 @@ import { PoliticaTextoComponent } from './politica-texto';
 
         <div class="acciones">
           <button type="button" class="btn-primary" [disabled]="enviando()" (click)="aceptar()">
-            @if (enviando()) { <ion-spinner name="crescent"></ion-spinner> } @else { Acepto la política }
+            @if (enviando()) { <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner> } @else { Acepto la política }
           </button>
           <button type="button" class="btn-secundario" [disabled]="enviando()" (click)="salir()">No acepto, salir</button>
         </div>

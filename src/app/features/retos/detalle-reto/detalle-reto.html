@@ -45,7 +45,7 @@
             <ion-icon name="trending-up" aria-hidden="true"></ion-icon>
           </div>
           <p class="metrica__valor">{{ r.progreso }}<span>/ {{ r.meta }}</span></p>
-          <app-barra-progreso [valor]="r.progreso" [meta]="r.meta" [completado]="r.completado" />
+          <app-barra-progreso etiqueta="Progreso del reto" [valor]="r.progreso" [meta]="r.meta" [completado]="r.completado" />
         </div>
 
         <div class="metrica">

@@ -24,7 +24,7 @@
     @if (ok()) { <p class="aviso-ok" role="status">{{ ok() }}</p> }
 
     @if (cargando()) {
-      <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+      <div class="cargando-centro"><ion-spinner name="crescent" aria-label="Cargando"></ion-spinner></div>
     } @else {
       @if (pestana() === 'actividades') {
         <form class="tarjeta formulario" (ngSubmit)="crearActividad()">
@@ -33,7 +33,7 @@
               <label class="field__label" for="na">Nueva actividad</label>
               <div class="field__box"><input id="na" [formControl]="nuevaActividad" maxlength="40" placeholder="Ej. YOGA" /></div>
             </div>
-            <button type="submit" class="btn-primary nueva" [disabled]="trabajando()"><ion-icon name="add-outline"></ion-icon>&nbsp;Crear</button>
+            <button type="submit" class="btn-primary nueva" [disabled]="trabajando()"><ion-icon name="add-outline" aria-hidden="true"></ion-icon>&nbsp;Crear</button>
           </div>
         </form>
 

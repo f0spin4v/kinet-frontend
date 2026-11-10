@@ -62,7 +62,7 @@
               <span class="mision__icono"><ion-icon [name]="icono(m.categoria)" aria-hidden="true"></ion-icon></span>
               <span class="mision__cuerpo">
                 <span class="mision__titulo">{{ m.titulo }}</span>
-                <app-barra-progreso [valor]="m.progreso" [meta]="m.meta" />
+                <app-barra-progreso etiqueta="Progreso del reto" [valor]="m.progreso" [meta]="m.meta" />
                 <span class="mision__cifra">{{ m.progreso }}/{{ m.meta }} {{ unidad(m.unidad) }}</span>
               </span>
               <span class="xp">+{{ numero(m.recompensaXp) }} XP</span>
@@ -90,7 +90,7 @@
               </div>
               <h3 class="reto__titulo">{{ r.titulo }}</h3>
               <p class="reto__desc">{{ r.descripcion }}</p>
-              <app-barra-progreso [valor]="r.progreso" [meta]="r.meta" />
+              <app-barra-progreso etiqueta="Progreso del reto" [valor]="r.progreso" [meta]="r.meta" />
               <div class="reto__pie">
                 <span class="reto__cifra"><strong>{{ r.progreso }}</strong>/{{ r.meta }} {{ unidad(r.unidad) }}</span>
                 <span class="xp">+{{ numero(r.recompensaXp) }} XP</span>

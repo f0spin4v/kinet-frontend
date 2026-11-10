@@ -21,10 +21,12 @@
   --kinet-text-rgb: 22, 24, 29;
   --kinet-text-secondary: #464b5a;
   --kinet-text-muted: #6b7080;
-  --kinet-accent: #0088b0;
+  --kinet-accent: #00789c; // 5,0:1 sobre blanco (WCAG AA, RNF-15)
+  --kinet-ok-text: #137a3a; // textos de éxito (4,8:1)
+  --kinet-aviso-text: #8a5700; // textos de aviso (5,4:1)
   --kinet-accent-soft: #006c8f;
   --kinet-primary-soft: #2f5bd8;
-  --kinet-glow: 0 0 12px 1px rgba(0, 136, 176, 0.35);
+  --kinet-glow: 0 0 12px 1px rgba(0, 120, 156, 0.35);
   --ion-color-danger: #d32f2f;
   --ion-color-danger-rgb: 211, 47, 47;
   --ion-color-danger-contrast: #ffffff;
@@ -37,6 +39,8 @@
 // Valores del modo oscuro, definidos una sola vez
 @mixin tema-oscuro {
   color-scheme: dark;
+  --kinet-ok-text: #2ecc71;
+  --kinet-aviso-text: #ffb020;
   --kinet-bg: #121316;
   --kinet-bg-rgb: 18, 19, 22;
   --kinet-surface: #1b1b1f;

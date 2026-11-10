@@ -49,7 +49,7 @@ const GRUPOS: { clave: keyof ResumenAnalitica; titulo: string; unidad: string }[
         </div>
 
         @if (cargando()) {
-          <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+          <div class="cargando-centro"><ion-spinner name="crescent" aria-label="Cargando"></ion-spinner></div>
         } @else if (error()) {
           <p class="alert-error" role="alert">{{ error() }}</p>
         } @else {

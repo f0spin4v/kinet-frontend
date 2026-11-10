@@ -28,7 +28,7 @@
     @if (aviso()) { <p class="aviso-ok" role="status">{{ aviso() }}</p> }
 
     @if (cargando()) {
-      <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+      <div class="cargando-centro"><ion-spinner name="crescent" aria-label="Cargando"></ion-spinner></div>
     } @else {
       <!-- ========== TEMPORADA ========== -->
       @if (pestana() === 'temporada') {
@@ -58,7 +58,7 @@
               <div class="acciones">
                 @if (!participacion() || participacion()!.estado === 'ACTIVA') {
                   <button type="button" class="btn-primary" [disabled]="trabajando() || busqueda() !== null" (click)="buscar()">
-                    <ion-icon name="search-outline"></ion-icon>&nbsp;Buscar enfrentamiento
+                    <ion-icon name="search-outline" aria-hidden="true"></ion-icon>&nbsp;Buscar enfrentamiento
                   </button>
                 }
                 @if (busqueda()) {
@@ -129,7 +129,7 @@
       <!-- ========== COMPETENCIAS ========== -->
       @if (pestana() === 'competencias') {
         <div class="acciones barra-sup">
-          <a routerLink="/tabs/competir/competencias/nueva" class="btn-primary"><ion-icon name="add-outline"></ion-icon>&nbsp;Nueva competencia</a>
+          <a routerLink="/tabs/competir/competencias/nueva" class="btn-primary"><ion-icon name="add-outline" aria-hidden="true"></ion-icon>&nbsp;Nueva competencia</a>
         </div>
 
         @if (invitaciones.items().length > 0) {
@@ -187,7 +187,7 @@
           </section>
         } @else {
           <div class="acciones barra-sup">
-            <a routerLink="/tabs/competir/clan/nuevo" class="btn-primary"><ion-icon name="add-outline"></ion-icon>&nbsp;Crear un clan</a>
+            <a routerLink="/tabs/competir/clan/nuevo" class="btn-primary"><ion-icon name="add-outline" aria-hidden="true"></ion-icon>&nbsp;Crear un clan</a>
           </div>
         }
 

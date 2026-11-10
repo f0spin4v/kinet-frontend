@@ -28,7 +28,7 @@ const HORAS_EVIDENCIA_PENDIENTE = 4;
     <ion-content>
       <div class="pagina pagina--estrecha">
         @if (cargando()) {
-          <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+          <div class="cargando-centro"><ion-spinner name="crescent" aria-label="Cargando"></ion-spinner></div>
         } @else if (entrenamiento(); as e) {
           <section class="tarjeta">
             <div class="tarjeta__cabecera">
@@ -85,13 +85,13 @@ const HORAS_EVIDENCIA_PENDIENTE = 4;
                 </div>
               </div>
               <button type="button" class="btn-primary" [disabled]="subiendo() || !enlace.trim()" (click)="subirEnlace(e)">
-                @if (subiendo()) { <ion-spinner name="crescent"></ion-spinner> } @else { Enviar enlace }
+                @if (subiendo()) { <ion-spinner name="crescent" aria-label="Cargando"></ion-spinner> } @else { Enviar enlace }
               </button>
 
               <div class="field imagen">
                 <label class="field__label" for="archivo">…o una imagen</label>
                 <label class="btn-secundario subir" for="archivo">
-                  <ion-icon name="cloud-upload-outline"></ion-icon> Elegir imagen
+                  <ion-icon name="cloud-upload-outline" aria-hidden="true"></ion-icon> Elegir imagen
                 </label>
                 <input id="archivo" type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="subirImagen(e, $event)" />
               </div>

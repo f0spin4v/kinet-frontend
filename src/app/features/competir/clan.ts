@@ -23,7 +23,7 @@ import { mensajeDeError } from '../../core/utils/http-error';
     <ion-content>
       <div class="pagina pagina--estrecha">
         @if (cargando()) {
-          <div class="cargando-centro"><ion-spinner name="crescent"></ion-spinner></div>
+          <div class="cargando-centro"><ion-spinner name="crescent" aria-label="Cargando"></ion-spinner></div>
         } @else if (d(); as d) {
           <section class="tarjeta tarjeta--resalte">
             <div class="tarjeta__cabecera">
