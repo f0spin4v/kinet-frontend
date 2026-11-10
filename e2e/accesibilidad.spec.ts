@@ -38,6 +38,16 @@ test.describe('Accesibilidad WCAG 2.1 AA (RNF-15)', () => {
     await revisar(page, 'Política de datos');
   });
 
+  test('autorización del representante legal', async ({ page }) => {
+    await simularApi(page, {
+      'POST /autorizaciones/consulta': ok({ nombreMenor: 'Sofía', gamertag: 'sofi_run', edad: 16,
+        nombreRepresentante: 'Andrés Ospina', parentesco: 'TUTOR_LEGAL', fechaExpiracion: '2026-11-17T10:00:00' }),
+    });
+    await page.goto('/autorizacion-representante?token=enlace-123');
+    await expect(page.getByText('Hola, Andrés Ospina.')).toBeVisible();
+    await revisar(page, 'Autorización del representante');
+  });
+
   test('inicio del jugador', async ({ page }) => {
     await conSesion(page);
     await simularApi(page, apiDeInicio());
@@ -51,7 +61,7 @@ test.describe('Accesibilidad WCAG 2.1 AA (RNF-15)', () => {
     await simularApi(page, {
       ...apiDeInicio(),
       'GET /catalogos/actividades': ok([{ id: 1, nombre: 'RUNNING', estado: 'ACTIVA', reglasVigentes: [] }]),
-      'GET /entrenamientos': ok([]),
+      'GET /entrenamientos': ok({ contenido: [], pagina: 0, tamanio: 10, totalElementos: 0, totalPaginas: 0 }),
     });
     await page.goto('/tabs/entrenar');
     await page.waitForLoadState('networkidle');

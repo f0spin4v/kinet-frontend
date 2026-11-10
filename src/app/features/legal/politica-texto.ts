@@ -41,7 +41,8 @@ export const VIGENCIA_POLITICA = '4 de noviembre de 2026';
       <p>No vendemos ni compartimos tus datos con terceros para publicidad.</p>
 
       <h2>4. Menores de edad</h2>
-      <p>Kinet es solo para mayores de 18 años. No recogemos a sabiendas datos de menores. Si detectamos una cuenta de un menor, la desactivamos y borramos sus datos.</p>
+      <p>Kinet es para mayores de 14 años. Si tienes entre 14 y 17, tu cuenta solo se activa cuando tu madre, tu padre o tu representante legal la autoriza (Ley 1581 de 2012, art. 7, y Decreto 1377 de 2013, art. 12). Le enviamos un correo con un enlace para autorizar o no; también puede firmar una autorización que el equipo registra en la app. Tu opinión se tiene en cuenta y tus datos se usan solo para lo descrito en esta política, respetando tu interés superior.</p>
+      <p>El representante puede retirar su autorización cuando quiera escribiendo a soporte; en ese caso la cuenta queda inactiva. Si detectamos una cuenta de un menor de 14 años o de un menor sin autorización, la desactivamos y borramos sus datos.</p>
 
       <h2>5. Tus derechos</h2>
       <p>Como titular puedes, de forma gratuita:</p>

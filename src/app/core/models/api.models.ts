@@ -2,7 +2,8 @@
 // `respuestaApiInterceptor` entrega solo "respuesta", así que los servicios devuelven estos tipos directamente.
 
 export type Rol = 'JUGADOR' | 'ADMINISTRADOR' | 'ENTRENADOR';
-export type EstadoUsuario = 'ACTIVO' | 'INACTIVO' | 'BLOQUEADO';
+/** PENDIENTE: titular de 14 a 17 años que espera la autorización de su representante legal (RN-33). */
+export type EstadoUsuario = 'ACTIVO' | 'INACTIVO' | 'BLOQUEADO' | 'PENDIENTE';
 export type Intensidad = 'BAJA' | 'MEDIA' | 'ALTA';
 export type EstadoValidacion = 'EN_CURSO' | 'PENDIENTE' | 'VALIDADO' | 'RECHAZADO';
 export type EstadoEvidencia = 'SIN_REVISAR' | 'ACEPTADA' | 'RECHAZADA';
@@ -39,6 +40,8 @@ export interface Usuario {
   fechaRegistro: string;
   /** false si la cuenta la creó el administrador y el titular aún no acepta la política (Ley 1581). */
   aceptaPolitica?: boolean;
+  /** true para titulares de 14 a 17 años: su cuenta depende de la autorización del representante (RN-33). */
+  menorDeEdad?: boolean;
 }
 
 /** Cuenta que crea el administrador (POST /api/admin/usuarios). */
@@ -55,7 +58,7 @@ export interface CrearCuentaRequest {
 export interface AccionAdmin {
   id: number;
   correoActor: string;
-  accion: 'CAMBIO_ESTADO' | 'CAMBIO_ROL' | 'CREACION_CUENTA' | 'AJUSTE_XP';
+  accion: 'CAMBIO_ESTADO' | 'CAMBIO_ROL' | 'CREACION_CUENTA' | 'AJUSTE_XP' | 'AUTORIZACION_MENOR';
   idUsuarioAfectado: number | null;
   correoAfectado: string | null;
   valorAnterior: string | null;
@@ -64,7 +67,8 @@ export interface AccionAdmin {
 }
 
 export interface Sesion {
-  token: string;
+  /** null cuando un menor se registra: su cuenta espera la autorización del representante (RN-33). */
+  token: string | null;
   usuario: Usuario;
 }
 
@@ -76,6 +80,44 @@ export interface RegistroRequest {
   gamertag: string;
   fechaNacimiento: string;
   aceptaPolitica: boolean;
+  /** Solo de 14 a 17 años (RN-33). */
+  nombreRepresentante?: string;
+  correoRepresentante?: string;
+  parentesco?: Parentesco;
+}
+
+export type Parentesco = 'MADRE' | 'PADRE' | 'TUTOR_LEGAL';
+
+/** Lo que ve el representante legal al abrir el enlace del correo. */
+export interface SolicitudAutorizacion {
+  nombreMenor: string;
+  gamertag: string | null;
+  edad: number;
+  nombreRepresentante: string;
+  parentesco: Parentesco;
+  fechaExpiracion: string;
+}
+
+/** Autorización del representante de un menor, como la ve el administrador. */
+export interface AutorizacionMenor {
+  idUsuario: number;
+  nombreRepresentante: string;
+  correoRepresentante: string;
+  parentesco: Parentesco;
+  estado: 'PENDIENTE' | 'AUTORIZADA' | 'RECHAZADA' | 'REVOCADA';
+  canal: 'CORREO' | 'ADMINISTRADOR' | null;
+  fechaSolicitud: string;
+  fechaExpiracion: string;
+  fechaRespuesta: string | null;
+  soporte: string | null;
+}
+
+export interface RegistrarAutorizacionRequest {
+  nombreRepresentante: string;
+  correoRepresentante: string;
+  parentesco: Parentesco;
+  soporte: string;
+  fechaNacimiento?: string;
 }
 
 export interface LoginRequest {

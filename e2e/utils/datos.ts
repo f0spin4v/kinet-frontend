@@ -8,13 +8,14 @@ export interface UsuarioPrueba {
   apellidos: string;
   correo: string;
   rol: 'JUGADOR' | 'ENTRENADOR' | 'ADMINISTRADOR';
-  estado: 'ACTIVO' | 'INACTIVO' | 'BLOQUEADO';
+  estado: 'ACTIVO' | 'INACTIVO' | 'BLOQUEADO' | 'PENDIENTE';
   gamertag: string | null;
   avatarUrl: string | null;
   fechaNacimiento: string | null;
   nivelHabilidad: string | null;
   fechaRegistro: string;
   aceptaPolitica: boolean;
+  menorDeEdad?: boolean;
 }
 
 /** Un jugador evaluado. usuario({ nivelHabilidad: null }) es un jugador que aún no hizo la evaluación. */

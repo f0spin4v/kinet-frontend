@@ -16,7 +16,7 @@ const CON_TILDE: Record<string, string> = {
   participacion: 'participación', puntuacion: 'puntuación', cancelacion: 'cancelación', creacion: 'creación',
   accion: 'acción', competicion: 'competición', clasificacion: 'clasificación', medio: 'medio', dia: 'día',
   dias: 'días', basico: 'básico', intermedio: 'intermedio', avanzado: 'avanzado', minimo: 'mínimo',
-  maximo: 'máximo', automatico: 'automático', energia: 'energía', ultima: 'última', ultimo: 'último',
+  maximo: 'máximo', automatico: 'automático', autorizacion: 'autorización', energia: 'energía', ultima: 'última', ultimo: 'último',
 };
 
 /** "INICIACION" → "Iniciación", "BRONCE_III" → "Bronce iii", "NATACION" → "Natación". */
@@ -35,14 +35,14 @@ export function etiqueta(valor: string | null | undefined): string {
 export function claseEstado(estado: string | null | undefined): string {
   switch (estado) {
     case 'VALIDADO': case 'ACEPTADA': case 'ACEPTADO': case 'COMPLETADO': case 'ACTIVO': case 'ACTIVA':
-    case 'GANADOR': case 'VICTORIA': case 'FINALIZADO': case 'FINALIZADA': case 'ENVIADA': case 'LIDER':
+    case 'GANADOR': case 'VICTORIA': case 'FINALIZADO': case 'FINALIZADA': case 'ENVIADA': case 'LIDER': case 'AUTORIZADA':
       return 'chip--ok';
     case 'PENDIENTE': case 'EN_COLA': case 'INVITADO': case 'SIN_REVISAR': case 'BORRADOR': case 'INACTIVO':
     case 'EMPAREJADA': case 'COMPLETADO_PARCIAL': case 'PROGRAMADO': case 'PROGRAMADA':
       return 'chip--aviso';
     case 'RECHAZADO': case 'RECHAZADA': case 'BLOQUEADO': case 'ABANDONADO': case 'ABANDONADA': case 'DERROTA':
     case 'PERDEDOR': case 'CANCELADA': case 'CANCELADO': case 'VENCIDA': case 'VENCIDO': case 'FALLIDA': case 'DESCALIFICADA':
-    case 'CERRADO': case 'CERRADA':
+    case 'CERRADO': case 'CERRADA': case 'REVOCADA':
       return 'chip--error';
     case 'EN_CURSO': case 'EMPATE':
       return 'chip--info';

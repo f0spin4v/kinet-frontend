@@ -11,6 +11,16 @@
       <p class="auth__lead">Mide tu nivel y empieza a competir.</p>
     </div>
 
+    @if (pendiente(); as p) {
+      <section class="auth__form pendiente" role="status">
+        <h2>Revisa con tu representante</h2>
+        <p>Tu cuenta quedó creada, pero no la puedes usar hasta que tu representante legal la autorice. Le enviamos un correo a <strong>{{ p.correoRepresentante }}</strong> con un enlace que vence en 7 días.</p>
+        @if (reenviado()) { <p class="aviso-ok">{{ reenviado() }}</p> }
+        @if (errorServidor()) { <p class="alert-error" role="alert">{{ errorServidor() }}</p> }
+        <button type="button" class="btn-secundario" (click)="reenviar()">Reenviar el correo</button>
+        <a class="btn-primary" routerLink="/login">Ir a iniciar sesión</a>
+      </section>
+    } @else {
     <form [formGroup]="form" (ngSubmit)="enviar()" novalidate class="auth__form">
       <div class="campos campos--2">
         <div class="field">
@@ -83,14 +93,47 @@
         <label class="field__label" for="fechaNacimiento">Fecha de nacimiento</label>
         <div class="field__box" [class.field__box--error]="mensaje('fechaNacimiento')">
           <ion-icon name="calendar-outline" aria-hidden="true"></ion-icon>
-          <input id="fechaNacimiento" type="date" formControlName="fechaNacimiento" [max]="hace18" aria-describedby="ayuda-edad" />
+          <input id="fechaNacimiento" type="date" formControlName="fechaNacimiento" [max]="hace14" aria-describedby="ayuda-edad" />
         </div>
         @if (mensaje('fechaNacimiento'); as msg) {
           <span class="field__error">{{ msg }}</span>
         } @else {
-          <span class="field__ayuda" id="ayuda-edad">Kinet es solo para mayores de 18 años.</span>
+          <span class="field__ayuda" id="ayuda-edad">Kinet es para mayores de 14 años. Si tienes menos de 18, tu representante legal debe autorizar tu cuenta.</span>
         }
       </div>
+
+      @if (esMenor()) {
+        <fieldset class="representante">
+          <legend>Tu representante legal</legend>
+          <p class="field__ayuda">Como tienes menos de 18 años, la ley (Ley 1581 de 2012) exige que tu madre, tu padre o tu tutor autorice tu cuenta. Le enviaremos un correo; podrás entrar cuando responda.</p>
+          <div class="field">
+            <label class="field__label" for="nombreRepresentante">Nombre completo del representante</label>
+            <div class="field__box" [class.field__box--error]="mensaje('nombreRepresentante')">
+              <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+              <input id="nombreRepresentante" type="text" formControlName="nombreRepresentante" autocomplete="off" />
+            </div>
+            @if (mensaje('nombreRepresentante'); as msg) { <span class="field__error">{{ msg }}</span> }
+          </div>
+          <div class="field">
+            <label class="field__label" for="correoRepresentante">Correo del representante</label>
+            <div class="field__box" [class.field__box--error]="mensaje('correoRepresentante')">
+              <ion-icon name="mail-outline" aria-hidden="true"></ion-icon>
+              <input id="correoRepresentante" type="email" formControlName="correoRepresentante" inputmode="email" autocomplete="off" />
+            </div>
+            @if (mensaje('correoRepresentante'); as msg) { <span class="field__error">{{ msg }}</span> }
+          </div>
+          <div class="field">
+            <label class="field__label" for="parentesco">Parentesco</label>
+            <div class="field__box" [class.field__box--error]="mensaje('parentesco')">
+              <select id="parentesco" formControlName="parentesco">
+                <option value="" disabled>Elige una opción</option>
+                @for (p of parentescos; track p.valor) { <option [value]="p.valor">{{ p.texto }}</option> }
+              </select>
+            </div>
+            @if (mensaje('parentesco'); as msg) { <span class="field__error">{{ msg }}</span> }
+          </div>
+        </fieldset>
+      }
 
       <label class="check">
         <input type="checkbox" formControlName="aceptaPolitica" />
@@ -115,6 +158,7 @@
         }
       </button>
     </form>
+    }
 
     <p class="auth__switch">
       ¿Ya tienes cuenta? <a routerLink="/login">Inicia sesión</a>

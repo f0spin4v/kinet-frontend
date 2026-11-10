@@ -1,0 +1,79 @@
+# KAN-80: pruebas e2e de los tres procesos contra la API REAL. Levanta Oracle Database Free con kinet_bd.sql,
+# el backend (rama main de f0spin4v/kinet-backend) y el frontend, y corre el proyecto "api-real" de Playwright.
+name: Frontend · e2e con la API real
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      rama_backend:
+        description: Rama del backend
+        default: main
+
+jobs:
+  e2e-api-real:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    services:
+      oracle:
+        image: gvenzl/oracle-free:23-slim
+        env:
+          ORACLE_PASSWORD: ClaveSoloDePruebas2026
+        ports: ['1521:1521']
+        options: >-
+          --health-cmd healthcheck.sh --health-interval 15s --health-timeout 10s --health-retries 40
+    steps:
+      - uses: actions/checkout@v4
+      - name: Backend
+        uses: actions/checkout@v4
+        with:
+          repository: f0spin4v/kinet-backend
+          ref: ${{ github.event.inputs.rama_backend || 'main' }}
+          path: backend-repo
+      - name: Base de datos (kinet_bd.sql)
+        run: |
+          docker cp backend-repo/kinet_bd.sql ${{ job.services.oracle.id }}:/tmp/kinet_bd.sql
+          docker exec -e NLS_LANG=AMERICAN_AMERICA.AL32UTF8 ${{ job.services.oracle.id }} \
+            sh -c 'sqlplus -s system/"$ORACLE_PASSWORD"@localhost/FREEPDB1 @/tmp/kinet_bd.sql' | tail -5
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend-repo/backend/pom.xml
+      - name: Empaquetar y arrancar la API
+        working-directory: backend-repo
+        run: |
+          (cd backend && mvn -B -ntp -q package -DskipTests)
+          nohup java -Xmx512m -jar backend/target/kinet-backend-*.jar > api.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://localhost:8080/api/sistema/health && break; sleep 3; done
+          curl -sf http://localhost:8080/api/sistema/health
+        env:
+          DB_URL: jdbc:oracle:thin:@//localhost:1521/FREEPDB1
+          DB_USUARIO: kinet_app
+          DB_CONTRASENA: KinetApp2026
+          KINET_JWT_SECRET: clave-solo-para-el-e2e-de-integracion-continua-2026
+          KINET_CORS_ORIGENES: http://localhost:4200
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Pruebas e2e contra la API real
+        run: npx playwright test --project=api-real
+        env:
+          E2E_SIN_VENTANA: '1'
+          CI: '1'
+      - name: Reportes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-api-real
+          path: |
+            playwright-report/
+            backend-repo/api.log
+          if-no-files-found: ignore

@@ -128,18 +128,58 @@ test.describe('Registro', () => {
     await expect(page.getByRole('alert')).toHaveText('Ese gamertag ya está en uso.');
   });
 
-  test('un menor de edad no puede registrarse (Ley 1581)', async ({ page }) => {
+  test('un menor de 14 años no puede registrarse (Ley 1581)', async ({ page }) => {
     const peticiones = await simularApi(page, {});
     await page.goto('/registro');
 
-    const hace15 = new Date();
-    hace15.setFullYear(hace15.getFullYear() - 15);
-    await llenarRegistro(page, { 'Fecha de nacimiento': hace15.toLocaleDateString('en-CA') });
+    const hace13 = new Date();
+    hace13.setFullYear(hace13.getFullYear() - 13);
+    await llenarRegistro(page, { 'Fecha de nacimiento': hace13.toLocaleDateString('en-CA') });
     await page.getByLabel('Acepto la política de tratamiento de datos personales.').check();
     await page.getByRole('button', { name: 'Crear cuenta' }).click();
 
-    await expect(page.getByText('Kinet es solo para mayores de 18 años.').first()).toBeVisible();
+    await expect(page.getByText('Kinet es para mayores de 14 años.').first()).toBeVisible();
     expect(ultima(peticiones, 'POST /auth/registro')).toBeUndefined();
+  });
+
+  test('de 14 a 17 años se piden los datos del representante y la cuenta queda pendiente (RN-33)', async ({ page }) => {
+    const pendiente = { ...sesion({ nombres: 'Sofía', estado: 'PENDIENTE', menorDeEdad: true, aceptaPolitica: false }), token: null };
+    const peticiones = await simularApi(page, {
+      'POST /auth/registro': ok(pendiente, 201),
+      'POST /auth/autorizacion/reenvio': ok({ mensaje: 'Si tu cuenta espera la autorización, le enviamos de nuevo el correo a tu representante.' }),
+    });
+    await page.goto('/registro');
+
+    const hace16 = new Date();
+    hace16.setFullYear(hace16.getFullYear() - 16);
+    await llenarRegistro(page, { 'Fecha de nacimiento': hace16.toLocaleDateString('en-CA') });
+    await page.getByLabel('Acepto la política de tratamiento de datos personales.').check();
+
+    // sin los datos del representante no se envía
+    await expect(page.getByRole('group', { name: 'Tu representante legal' })).toBeVisible();
+    await page.getByRole('button', { name: 'Crear cuenta' }).click();
+    await expect(page.getByText('Escribe el nombre de tu representante legal.')).toBeVisible();
+    expect(ultima(peticiones, 'POST /auth/registro')).toBeUndefined();
+
+    // el correo del representante no puede ser el mismo del menor
+    await page.getByLabel('Nombre completo del representante').fill('Andrés Ospina');
+    await page.getByLabel('Correo del representante').fill('mateo@kinet.com');
+    await page.getByLabel('Parentesco').selectOption('TUTOR_LEGAL');
+    await page.getByRole('button', { name: 'Crear cuenta' }).click();
+    await expect(page.getByText('El correo de tu representante legal debe ser distinto al tuyo.')).toBeVisible();
+
+    await page.getByLabel('Correo del representante').fill('tio@correo.com');
+    await page.getByRole('button', { name: 'Crear cuenta' }).click();
+
+    await expect(page.getByRole('heading', { name: 'Revisa con tu representante' })).toBeVisible();
+    await expect(page.getByText('tio@correo.com')).toBeVisible();
+    expect(ultima(peticiones, 'POST /auth/registro')?.cuerpo).toMatchObject({
+      nombreRepresentante: 'Andrés Ospina', correoRepresentante: 'tio@correo.com', parentesco: 'TUTOR_LEGAL',
+    });
+    // no hay sesión: sigue fuera de la app
+    await page.getByRole('button', { name: 'Reenviar el correo' }).click();
+    await expect(page.getByText('Le enviamos de nuevo el correo a tu representante.')).toBeVisible();
+    expect(ultima(peticiones, 'POST /auth/autorizacion/reenvio')?.cuerpo).toEqual({ correo: 'mateo@kinet.com' });
   });
 
   test('la política de datos se puede leer desde el registro', async ({ page }) => {
@@ -147,7 +187,7 @@ test.describe('Registro', () => {
     await page.goto('/politica-datos');
 
     await expect(page.getByRole('heading', { name: 'Política de tratamiento de datos personales' })).toBeVisible();
-    await expect(page.getByText('Kinet es solo para mayores de 18 años. No recogemos')).toBeVisible();
+    await expect(page.getByText('Kinet es para mayores de 14 años. Si tienes entre 14 y 17')).toBeVisible();
   });
 
   test('el enlace vuelve al inicio de sesión', async ({ page }) => {

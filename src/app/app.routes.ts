@@ -30,6 +30,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/legal/politica.page').then(m => m.PoliticaPage),
   },
   {
+    // RN-33: el representante legal de un menor abre el enlace del correo (?token=...), sin cuenta en Kinet
+    path: 'autorizacion-representante',
+    loadComponent: () => import('./features/legal/autorizacion-representante.page').then(m => m.AutorizacionRepresentantePage),
+  },
+  {
     // cuentas creadas por el administrador: el titular acepta la política en su primer ingreso
     path: 'aceptar-politica',
     canActivate: [politicaPendienteGuard],
